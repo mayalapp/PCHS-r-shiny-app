@@ -1,4 +1,4 @@
-# PCHS-r-shiny-app
+# PCHS R Shiny App
 
 This is an R Shiny App used by Primary Care Health Services to create reports on cancer screening rates over time. 
 It uses quarterly reports outputted from Eye-to-Eye, and may be generalized to be usable for other health care facilities. 
@@ -12,6 +12,11 @@ To easily convert quarterly reports into time-series visuals. This will allow PC
 
 Users can go to the [online server](https://mayalapp.shinyapps.io/health_report/) to use the app. Use the dropdown menue to choose a cancer screening type, upload quarterly report files, and click "Create plots." 
 
+The code for the R Shiny app is located in the `app` directory. 
+
 ## Notes about quarterly report files
 
-Example files are provided in the 
+Example files are provided in the `quarterlyReports` directory. Important formatting notes: 
+- Files should be xlsx files named using the format `"MM-DD-YY xxxxxxxx.xlsx"` where `MM-DD-YY` is the date of the current quarter. 
+- If data from multiple quarters is included, the data from the previous quarter should be listed first, followed by data from the current quarter (note: file names were used for dating the quarterly data to account for typos in the dates of historical quarterly reports) 
+- The words "Item" and "Location" should not be used anywhere except to note the rows where the type of data and the site names are indicated, respectively 
