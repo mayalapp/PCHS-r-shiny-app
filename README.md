@@ -23,7 +23,7 @@ Example files are provided in the `quarterlyReports` directory. Important format
 - Follow the format of the example files as closely as possible to ensure the app does not fail. 
 
 
-# Future work on the app
+# Future work
 
 1. Include an option to download the report as a pdf file
 1. Add color to the site plots
