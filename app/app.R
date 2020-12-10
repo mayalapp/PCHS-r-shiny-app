@@ -22,7 +22,7 @@ ui = fluidPage(
   wellPanel(
     # dropdown with different screening options. starts on blank. affects notes on which patients are used, report title, and graph titles
       selectInput(inputId = "screening.type", label = "Choose screening type",
-                        choices = c("","Colorectal Cancer Screening", "Mammogram", "Cervical Cancer Screening")),
+                        choices = c("","Colorectal Cancer Screening", "Mammogram Screening", "Cervical Cancer Screening")),
 
       # select files. may select all files
       fileInput(inputId = "files",
@@ -276,7 +276,7 @@ to the end of the reporting period and that DID  NOT received a hysterectomy. ",
                  "Screened patients:", "Active Female patients between 21 and 29 years that had a cevical cancer screening within
 the last 3 years or active female patients between 30 and 64 years old that had a cervical cancer
 screening within the last 5 years.", sep = "\n")
-   }else if(input$screening.type == "Mammogram"){
+   }else if(input$screening.type == "Mammogram Screening"){
      paste("Notes on patient data: ","","All patients: ", "Active Female patients between the 50 and 74 years of age that DID NOT have a mastectomy and
 that  had a medical visit during the 3 years prior to the end of the reporting period. ","",
                  "Screened patients: ", "Patients that received a mammogram during the 2 years prior to the end of the reporting period.", sep = "\n")
@@ -291,7 +291,7 @@ that  had a medical visit during the 3 years prior to the end of the reporting p
      ("Patients 50-75 Years Old")
    }else if(input$screening.type == "Cervical Cancer Screening"){
      ("Female Patients 21-64 Years Old")
-   }else if(input$screening.type == "Mammogram"){
+   }else if(input$screening.type == "Mammogram Screening"){
      ("Female Patients 50-74 Years Old")
    }
  })
