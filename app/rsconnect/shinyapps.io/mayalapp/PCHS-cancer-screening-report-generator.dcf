@@ -5,9 +5,9 @@ account: mayalapp
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3380132
-bundleId: 3967504
+bundleId: 3983458
 url: https://mayalapp.shinyapps.io/PCHS-cancer-screening-report-generator/
-when: 1607548185.6627
+when: 1607877030.77905
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: app_backup.R|cancer_report.pdf
+ignoredFiles: cancer_report.pdf

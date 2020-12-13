@@ -5,8 +5,7 @@ params:
     screening.data: data.frame()
     label.months: 2
     
-title: "`r params$screening.type` Report" 
-
+title: "`r params$screening.type` Report `r Sys.Date()`" 
 classoption: landscape
 
 ---
@@ -39,12 +38,13 @@ library(colorspace)
  ax.patients = "Number of Patients"
  ax.location = "Site"
  
- # create variable for title of All patients plots
+  # create variable for title of All patients plots
+ title.patients = ""
    if(params$screening.type == "Colorectal Cancer Screening"){
      title.patients = "Patients 50-75 Years Old"
    }else if(params$screening.type == "Cervical Cancer Screening"){
      title.patients = "Female Patients 21-64 Years Old"
-   }else if(params$screening.type == "Mammogram"){
+   }else if(params$screening.type == "Mammogram Screening"){
      title.patients = "Female Patients 50-74 Years Old"
    }
  
@@ -115,7 +115,7 @@ to the end of the reporting period and that DID  NOT received a hysterectomy. ",
                  "Screened patients:", "Active Female patients between 21 and 29 years that had a cevical cancer screening within
 the last 3 years or active female patients between 30 and 64 years old that had a cervical cancer
 screening within the last 5 years.", " "," ",sep = "\n")
-   }else if(params$screening.type == "Mammogram"){
+   }else if(params$screening.type == "Mammogram Screening"){
      notes = paste("Notes on patient data: ","","All patients: ", "Active Female patients between the 50 and 74 years of age that DID NOT have a mastectomy and
 that  had a medical visit during the 3 years prior to the end of the reporting period. ","",
                  "Screened patients: ", "Patients that received a mammogram during the 2 years prior to the end of the reporting period.", " ", " ",sep = "\n")

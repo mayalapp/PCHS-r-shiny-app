@@ -1,7 +1,7 @@
 #https://shiny.rstudio.com/tutorial/
 
 
-#setwd("~/Documents/dad_data_project/")
+# load required libraries
 library(shiny)
 library(tidyverse)
 library(readxl)
@@ -13,35 +13,39 @@ library(colorspace)
 #library(lubridate)
 
 
+# functions to extract data from xlsx files - do not require user inputted values
+source("functions.R")
+
+
 # creates r shiny user interface
 ui = fluidPage(
-  # *Input() functions - e.g. sliderInput(), numericInput(), etc.
-  # example: always have inputId and label parameters
 
   verticalLayout(
+
+    # get user inputs
   wellPanel(
     # dropdown with different screening options. starts on blank. affects notes on which patients are used, report title, and graph titles
       selectInput(inputId = "screening.type", label = "Choose screening type",
                         choices = c("","Colorectal Cancer Screening", "Mammogram Screening", "Cervical Cancer Screening")),
 
-      # select files. may select all files
+      # select files needed for report
       fileInput(inputId = "files",
                 label = "Choose quarterly report xlsx files. File names should begin with the date of the quarterly report: \"MM-DD-YY xxxxxxxx.xlsx\". ",
                 multiple = TRUE, accept = c(".csv", ".xlsx")),
 
+      # edit this if labels start getting cut off - makes weird behavior happen right now
       #sliderInput(inputId = "label.months", min = 0, max = 12, value = 2,
                   #label = "Increase this value to add room for PCHS plot labels. Decrease this value to decrease room for PCHS plot labels. "),
+
       # button to generate plots
       actionButton(inputId = "run", "Create plots"),
-      downloadButton("download.report", "Download report PDF")
+      # button to download pdf report
+      downloadButton("download.report", "Download Report PDF")
 
             ),
 
 
-  # *Output() funtions  - e.g. dataTableOutput(), plotOutput, etc.
-  # example: always have outputId
-
-
+  # output report
   titlePanel(textOutput(outputId = "report.title")),
   verbatimTextOutput(outputId = "notes"),  # notes on which patients are included in screening rates
   h3(textOutput(outputId = "text.PCHS")),
@@ -63,172 +67,79 @@ ui = fluidPage(
 
 server = function(input, output){
 
+  # SETTING UP PLOTS
+  #--------------------
 
-# gets date for the report
-# IMPORTANT: bases date off of file name of the report NOT the dates actually in the file
-# inputs: file_name - file name of the report. should be of the form "MM-DD-YY PCHS xxxxx Screening Rate.xlsx"
-# output: date for this quarterly report
-extract_date = function(file_name){
-    temp = strsplit(file_name, split = " ")
-    date_temp_index = which(grepl("-", temp[[1]]))
-    quart_report_date = temp[[1]][date_temp_index]%>%as.Date(format = "%m-%d-%y")
-    return(quart_report_date)
-}
+    # setting up axes for plots - note: titles of plots based on input$screening.type
+    ax.date = "Date"
+    ax.screening = "Screening Rate (%)"
+    ax.patients = "Number of Patients"
+    ax.location = "Site"
+
+    # create variable for title of All patients plots
+    title.patients = reactive({
+      if(input$screening.type == "Colorectal Cancer Screening"){
+        ("Patients 50-75 Years Old")
+      }else if(input$screening.type == "Cervical Cancer Screening"){
+        ("Female Patients 21-64 Years Old")
+      }else if(input$screening.type == "Mammogram Screening"){
+        ("Female Patients 50-74 Years Old")
+      }
+    })
 
 
-# finds row indices where a word is located in a df
-# IMPORTANT: don't include the word "item" in the patient notes - could mess this function up
-# inputs: df - raw df of data from we are interested in searching
-#        wrd - word we are interested in finding
-# outputs: vector of indices in quart_report which rows of df contain wrd, sorted by which index comes first
-find_word_row <- function(df, wrd){
-  temp = which(grepl(wrd, df, ignore.case = TRUE)) # find which columns contain the word wrd
-  item_index = c() # initialize row index
+    # set plot options for all plots to abide by
+    plot_options = theme(axis.text=element_text(size=14),
+                         axis.title=element_text(size=16,face="bold"),
+                         plot.title = element_text(size = 20, face = "bold"),
+                         legend.text = element_text(size=14),
+                         legend.title = element_text(size=16, face = "bold"))
 
-  # for every column with the word "item", find the row index where it exists
-  for(i in 1:length(temp)){
-    # append the row index to our list - only keep unique indicies
-    item_index = c(item_index, grep(wrd, t(df[i]), ignore.case = TRUE))%>%unique()
+    combined_plot_width = 1250
+    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
+
+  # creates screening line plot for a specific location
+  # inputs:
+  #      df - dataframe with full cleaned data (including all locations)
+  #      loc - string of location name
+  #      ymin - y axis minimum value
+  #      ymax - y axis max value
+  create_screening_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
+    df%>%filter(location == loc)%>%
+      ggplot(aes(x = date, y = screening_rate))+
+      geom_line(size = 1.5, color = mycolor)+
+      theme_bw()+
+      guides(size = FALSE)+
+      labs(x = "Date", y = "Number of Patients")+
+      ylim(ymin, ymax)+
+      labs(x = ax.date, y = ax.screening)+
+      ggtitle(paste(loc, input$screening.type, "Rate"))+
+      plot_options+
+      scale_x_date(date_labels = "%b %Y")
   }
 
-  # return sorted values
-  return(sort((item_index)))
-}
-
-
-# extracts the screening rates and patient numbers from the quarterly report
-# inputs:
-#     quart_report - the dataframe with the information read directly from the quarterly report xlsx file
-#     report_date - the date of the quarterly report file - extracted from file name via extract_date
-# output: a clean dataframe with location, date, screening rate, and total number of patients for each quarter.
-#         Also includes screening rate for all of PCHS
-extract_data <- function(quart_report, report_date){
-
-  clean_data = data.frame()
-  item_index = find_word_row(quart_report, "Item")  # find rows with the word "Item" in raw date- to delineat data tables from the report file
-
-  # for each of the 4 data tables in a report, extract the data
-  for(i in 1:length(item_index)){
-
-    # create the ith data table
-    if(! is.na(item_index[i+1])){ # if we're not on our last table,
-      # create the table to include the "Location" (just above item_index row) through to the next item_index
-      table_i_data = data.frame(quart_report[(item_index[i]-1):(item_index[i+1]-2),])
-    }else{
-      # if we're on the last table, create from "Location" until end of quart_report dataframe
-      table_i_data = data.frame(quart_report[(item_index[i]-1):dim(quart_report)[1],])
-
-    }
-
-    # find rows with "Location" word in current data table
-    loc_row_index = find_word_row(table_i_data, "Location")
-    # finds columns with "Value" word in current data table
-    value_col_index = which(grepl("Value", table_i_data, ignore.case = TRUE))
-
-    # finds first row with data - two options because when there is multiple locations, need to use sapply instead of apply
-    #       converts all of the columns with "Value" to numerics,
-    #       checks which are NAs (because they didn't have numbers and therefore aren't data),
-    #       then the first row that does not have an NA is the first row with data
-    if(length(value_col_index)>1){
-      first_data_row_index = apply(table_i_data[,value_col_index], MARGIN = 2, FUN = as.numeric)%>% is.na()%>%ifelse(FALSE, TRUE)%>%which()%>%min()
-    }else{
-      first_data_row_index = sapply(table_i_data[,value_col_index], FUN = as.numeric)%>% is.na()%>%ifelse(FALSE, TRUE)%>%which()%>%min()
-    }
-
-
-    # extracts data - two options - data table with multiple locations or All data
-    # creates vectors with total number of patients, screened patients, and screening rate
-    if(length(loc_row_index > 0 )){   # if we are on a data table with multiple locations
-
-      # find columns with location names (anywhere that isn't blank in the "location" row except the first column with the word "Location")
-      loc_col_index = which(!is.na(table_i_data[loc_row_index,]))[-1]
-
-      location = table_i_data[loc_row_index, loc_col_index]%>%t()     # make a df with the location names
-      colnames(location) = 'location'                                 # rename df column so it is called "location"
-
-      # create vector with total number of patients for each location
-      all_patients = table_i_data[first_data_row_index, loc_col_index] %>% t() %>% as.numeric()
-
-      # create vector with number of screen patients at each location
-      screened_patients = table_i_data[first_data_row_index+1, loc_col_index ] %>% t() %>% as.numeric()
-
-      # create vector with screening rate at each location
-      screening_rate = screened_patients / all_patients * 100
-
-    } else{ # for data tables summarizing screening rate for all locations together
-      location = "All"
-
-      # create vector with total number of patients for each location
-      all_patients = table_i_data[first_data_row_index, value_col_index] %>% t() %>% as.numeric()
-
-      # create vector with number of screen patients at each location
-      screened_patients = table_i_data[first_data_row_index+1, value_col_index ] %>% t() %>% as.numeric()
-
-      # create vector with screening rate at each location
-      screening_rate = screened_patients / all_patients * 100
-    }
-
-    # put all  vectors into df for this data table
-    clean_data_i = data.frame(location = location, screening_rate = screening_rate, all_patients= all_patients, screened_patients = screened_patients)
-    label.months = 3
-    # add date to df
-    if(i <= 2 && length(item_index) > 2){ # first two data tables are for the data from the previous quarter, when 2 quarters are given
-      clean_data_i = clean_data_i%>%mutate(date = report_date - months(label.months))
-    }else{ # dfs 3-4 are for tables  in this quarterly report
-      clean_data_i = clean_data_i%>%mutate(date = report_date)
-    }
-
-    # append df for table_i to full clean_data
-    clean_data = rbind(clean_data, clean_data_i)
-
+  # creates screening line plot for a specific location
+  # inputs:
+  #      df - dataframe with full cleaned data (including all locations)
+  #      loc - string of location name
+  #      ymax - y axis max value
+  create_patient_barplot = function(df, loc, ymax, mycolor = "grey"){
+    df%>%filter(location == loc)%>%
+      ggplot(aes(x = date, y = all_patients))+
+      geom_bar(stat = "identity", fill = mycolor)+
+      theme_bw()+
+      labs(x = ax.date, y = ax.patients)+
+      ggtitle(paste(loc, title.patients()))+
+      plot_options+
+      ylim(0, ymax)+
+      scale_x_date(date_labels = "%b %Y")
   }
 
-  # do not include "CHC" patients (not connected to a location) and get rid of redundant data
-  clean_data = clean_data%>%filter(location != "CHC")%>%unique()
 
-  return(clean_data)
-}
+  #######################################
 
-# creates screening line plot for a specific location
-# inputs:
-#      df - dataframe with full cleaned data (including all locations)
-#      loc - string of location name
-#      ymin - y axis minimum value
-#      ymax - y axis max value
-create_screening_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
-  df%>%filter(location == loc)%>%
-    ggplot(aes(x = date, y = screening_rate))+
-    geom_line(size = 1.5, color = mycolor)+
-    theme_bw()+
-    guides(size = FALSE)+
-    labs(x = "Date", y = "Number of Patients")+
-    ylim(ymin, ymax)+
-    labs(x = ax.date, y = ax.screening)+
-    ggtitle(paste(loc, input$screening.type, "Rate"))+
-    plot_options+
-    scale_x_date(date_labels = "%b %Y")
-}
-
-# creates screening line plot for a specific location
-# inputs:
-#      df - dataframe with full cleaned data (including all locations)
-#      loc - string of location name
-#      ymax - y axis max value
-create_patient_barplot = function(df, loc, ymax, mycolor = "grey"){
-  df%>%filter(location == loc)%>%
-    ggplot(aes(x = date, y = all_patients))+
-    geom_bar(stat = "identity", fill = mycolor)+
-    theme_bw()+
-    labs(x = ax.date, y = ax.patients)+
-    ggtitle(paste(loc, title.patients()))+
-    plot_options+
-    ylim(0, ymax)+
-    scale_x_date(date_labels = "%b %Y")
-}
-
-
-###########
-
+  # EXTRACTING AND CLEANING DATA
+  # ------------------------------
 # creates df of data from all selected quarterly report files
  data = reactive({
    clean_data = data.frame()
@@ -251,12 +162,10 @@ print(clean_data)
   }
   )
 
- # setting up axes for plots - note: titles of plots based on input$screening.type
- ax.date = "Date"
- ax.screening = "Screening Rate (%)"
- ax.patients = "Number of Patients"
- ax.location = "Site"
+  #######################################
 
+  # OUTPUTS
+  #------------------------------
 # output report title  - based on input$screening.type
  output$report.title = renderText({ paste(input$screening.type, "Report")})
 
@@ -285,30 +194,13 @@ that  had a medical visit during the 3 years prior to the end of the reporting p
  })
 
 
-# create variable for title of All patients plots
- title.patients = reactive({
-   if(input$screening.type == "Colorectal Cancer Screening"){
-     ("Patients 50-75 Years Old")
-   }else if(input$screening.type == "Cervical Cancer Screening"){
-     ("Female Patients 21-64 Years Old")
-   }else if(input$screening.type == "Mammogram Screening"){
-     ("Female Patients 50-74 Years Old")
-   }
- })
-
-
-# set plot options for all plots to abide by
- plot_options = theme(axis.text=element_text(size=14),
-                      axis.title=element_text(size=16,face="bold"),
-                      plot.title = element_text(size = 20, face = "bold"),
-                      legend.text = element_text(size=14),
-                      legend.title = element_text(size=16, face = "bold"))
-
-combined_plot_width = 1250
-plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
-
 observeEvent(input$run, {   # create run button to plot graphs
 
+  #######################################
+
+  # PCHS PLOTS
+  #------------------------------
+  output$text.PCHS = renderText("Graphs for all PCHS sites")
 
    # output single line plot for screening rates of all locations together
    output$plot.allLocationsSummary = renderPlot({
@@ -349,8 +241,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       scale_color_manual(values = plot_colors)
       #geom_dl(aes(label = location), method = list(dl.combine("last.points")), cex = 0.8)
 
-    #%>%
-    #  direct.label("last.qp")
+    #%>%direct.label("last.qp")
 
     #Levels: All Alma Illery Braddock CHC East End Hazelwood Hill House McKeesport Steel Valley West End Wilkinsburg
 
@@ -360,6 +251,14 @@ observeEvent(input$run, {   # create run button to plot graphs
     grid.arrange(grobs = p1, nrow = 1, widths = c(1.5,2))  # output plot
 
     }, height = 500, width = combined_plot_width)
+
+
+   #######################################
+
+   # PLOTS OF INDIVIDUAL SITES
+   # ------------------------------
+     # output title for individual locations
+     output$text.locations = renderText("Graphs for individual sites")
 
 
    # output two plots for each location - one showing total number of patients, other with screening rate
@@ -374,6 +273,8 @@ observeEvent(input$run, {   # create run button to plot graphs
                 middle_rate = min(screening_rate) + 0.5 * rate_range)    # find middle between max and min screening rate for each locaiton
     max_range = temp_data%>%filter(rate_range == max(rate_range)) # calculate max range
     max_range = max_range$rate_range                              # isolate max range as a number
+
+    # make variable for barplot y max
     y_ranges = temp_data%>%mutate(ymin = middle_rate - 0.5 * max_range, ymax = middle_rate + 0.5 * max_range)  # create new ranges for y axes
 
 
@@ -391,33 +292,31 @@ observeEvent(input$run, {   # create run button to plot graphs
       #create screening rate line plots
       p2 = create_screening_plot(data(), location_i, y_ranges$ymin[i], y_ranges$ymax[i], plot_colors[i+1])
 
+      # save the plots in a list
       p3[[i]] = p1
       p4[[i]] = p2
     }
 
-    # arrange plots into one output
-
+    # combine site plots into one list
     plts = rbind(p3, p4)
 
-    # margin of white space between plots
+    # add margin of white space between plots
     margin = theme(plot.margin = unit(rep(1, times = nLocations), "cm"))
 
+    # arrange plots into one output
     grid.arrange(grobs = lapply(plts, "+", margin), widths = c(1.5, 2), heights = 4*rep(1, times = nLocations))
 
 
-  }, height = 4100, width = combined_plot_width)
+  }, height = 4100, width = combined_plot_width) # make plots output nice and big
 
 
 
  }) # isolate end
 
- # output title for individual locations
-  output$text.locations = renderText("Graphs for individual sites")
-  output$text.PCHS = renderText("Graphs for all PCHS sites")
 
-
-
+# make button so report can be downloaded as pdf
   output$download.report <- downloadHandler(
+    # file name should be screeningtype_report_todaysDate.pdf
     filename = function() {
       paste(input$screening.type, "_report_", Sys.Date(), ".pdf", sep="")
     },
