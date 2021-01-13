@@ -17,6 +17,7 @@ library(colorspace)
 
 # -------------------------------------------------------------------------------------------#
 
+
 # creates r shiny user interface
 ui = fluidPage(
   # *Input() functions - e.g. sliderInput(), numericInput(), etc.
@@ -33,8 +34,12 @@ ui = fluidPage(
                 label = "Choose quarterly report xlsx files. File names should begin with the date of the quarterly report: \"MM-DD-YY xxxxxxxx.xlsx\". ",
                 multiple = TRUE, accept = c(".csv", ".xlsx")),
 
+      #sliderInput(inputId = "label.months", min = 0, max = 12, value = 2,
+                  #label = "Increase this value to add room for PCHS plot labels. Decrease this value to decrease room for PCHS plot labels. "),
       # button to generate plots
-      actionButton(inputId = "run", "Create plots")
+      actionButton(inputId = "run", "Create plots"),
+      downloadButton("download.report", "Download report PDF")
+
             ),
 
 
@@ -171,9 +176,10 @@ extract_data <- function(quart_report, report_date){
     # put all  vectors into df for this data table
     clean_data_i = data.frame(location = location, screening_rate = screening_rate, all_patients= all_patients, screened_patients = screened_patients)
 
+       label.months = 3
     # add date to df
     if(i <= 2 && length(item_index) > 2){ # first two data tables are for the data from the previous quarter, when 2 quarters are given
-      clean_data_i = clean_data_i%>%mutate(date = report_date - months(3))
+      clean_data_i = clean_data_i%>%mutate(date = report_date - months(label.months))
     }else{ # dfs 3-4 are for tables  in this quarterly report
       clean_data_i = clean_data_i%>%mutate(date = report_date)
     }
@@ -195,10 +201,11 @@ extract_data <- function(quart_report, report_date){
 #      loc - string of location name
 #      ymin - y axis minimum value
 #      ymax - y axis max value
-create_screening_plot = function(df, loc, ymin, ymax){
+
+create_screening_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
   df%>%filter(location == loc)%>%
     ggplot(aes(x = date, y = screening_rate))+
-    geom_line(size = 1.5)+
+    geom_line(size = 1.5, color = mycolor)+
     theme_bw()+
     guides(size = FALSE)+
     labs(x = "Date", y = "Number of Patients")+
@@ -214,10 +221,11 @@ create_screening_plot = function(df, loc, ymin, ymax){
 #      df - dataframe with full cleaned data (including all locations)
 #      loc - string of location name
 #      ymax - y axis max value
-create_patient_barplot = function(df, loc, ymax){
+
+create_patient_barplot = function(df, loc, ymax, mycolor = "grey"){
   df%>%filter(location == loc)%>%
     ggplot(aes(x = date, y = all_patients))+
-    geom_bar(stat = "identity")+
+    geom_bar(stat = "identity", fill = mycolor)+
     theme_bw()+
     labs(x = ax.date, y = ax.patients)+
     ggtitle(paste(loc, title.patients()))+
@@ -242,6 +250,9 @@ create_patient_barplot = function(df, loc, ymax){
 
    # data should only contain unique values (get rid of duplicates from files containing info from previous quarter)
    clean_data = unique(clean_data)
+
+   clean_data = clean_data%>%mutate(location = as.factor(location))
+print(clean_data)
 
    # relevel so "All" is first level
    clean_data$location <- relevel(clean_data$location, "All")
@@ -307,7 +318,6 @@ combined_plot_width = 1250
 plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
 
 observeEvent(input$run, {   # create run button to plot graphs
-
 
    # output single line plot for screening rates of all locations together
    output$plot.allLocationsSummary = renderPlot({
@@ -386,9 +396,12 @@ observeEvent(input$run, {   # create run button to plot graphs
       location_i = data()$location[i]                   # get name of ith location
 
       # create all patient bar graph
-      p1 = create_patient_barplot(data(), location_i, max_patients)#+scale_fill_manual(values = c(plot_colors[i+1], "black"))
+      # p1 = create_patient_barplot(data(), location_i, max_patients)#+scale_fill_manual(values = c(plot_colors[i+1], "black"))
+      # #create screening rate line plots
+      # p2 = create_screening_plot(data(), location_i, y_ranges$ymin[i], y_ranges$ymax[i])#+scale_color_manual(values = c(plot_colors[i+1], "black"))
+      p1 = create_patient_barplot(data(), location_i, max_patients, plot_colors[i+1])
       #create screening rate line plots
-      p2 = create_screening_plot(data(), location_i, y_ranges$ymin[i], y_ranges$ymax[i])#+scale_color_manual(values = c(plot_colors[i+1], "black"))
+      p2 = create_screening_plot(data(), location_i, y_ranges$ymin[i], y_ranges$ymax[i], plot_colors[i+1])
 
       p3[[i]] = p1
       p4[[i]] = p2
@@ -413,6 +426,32 @@ observeEvent(input$run, {   # create run button to plot graphs
  # output title for individual locations
   output$text.locations = renderText("Graphs for individual sites")
   output$text.PCHS = renderText("Graphs for all PCHS sites")
+
+
+
+  output$download.report <- downloadHandler(
+    filename = function() {
+      paste(input$screening.type, "_report_", Sys.Date(), ".pdf", sep="")
+    },
+    content = function(file) {
+      # Copy the report file to a temporary directory before processing it, in
+      # case we don't have write permissions to the current working dir (which
+      # can happen when deployed).
+      tempReport <- file.path(tempdir(), "cancer_report.Rmd")
+      file.copy("cancer_report.Rmd", tempReport, overwrite = TRUE)
+
+      # Set up parameters to pass to Rmd document
+      params <- list(screening.type = input$screening.type, screening.data = data())
+
+      # Knit the document, passing in the `params` list, and eval it in a
+      # child of the global environment (this isolates the code in the document
+      # from the code in this app).
+      rmarkdown::render(tempReport, output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
+    }
+  )
 }
 
 

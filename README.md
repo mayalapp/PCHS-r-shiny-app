@@ -10,7 +10,11 @@ To easily convert quarterly reports into time-series visuals. This will allow PC
 
 # Usage
 
+<<<<<<< HEAD
 Users can go to the [online server](http://mayalapp.shinyapps.io/PCHS-cancer-screening-report-generator) to use the app. Use the dropdown menu to choose a cancer screening type, upload quarterly report files, and click "Create plots." 
+=======
+Users can go to the [online server](https://mayalapp.shinyapps.io/PCHS-cancer-screening-report-generator/) to use the app. Use the dropdown menu to choose a cancer screening type, upload quarterly report files, and click "Create plots." 
+>>>>>>> f64f6c0f439d5db1c3c912888725903b7a922b71
 
 The code for the R Shiny app is located in the `app` directory. 
 
