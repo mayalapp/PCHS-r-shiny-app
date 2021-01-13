@@ -41,6 +41,7 @@ ui = fluidPage(
       actionButton(inputId = "run", "Create plots"),
       # button to download pdf report
       downloadButton("download.report", "Download Report PDF")
+      
 
             ),
 
@@ -50,6 +51,10 @@ ui = fluidPage(
   verbatimTextOutput(outputId = "notes"),  # notes on which patients are included in screening rates
   h3(textOutput(outputId = "text.PCHS")),
   textOutput(outputId = "warn.no.files"), # currently not used?
+  
+  # for debugging
+  textOutput(outputId = "debug"), 
+  
   plotOutput(outputId = "plot.allLocationsSummary", height = 500), # outputs one plot with a line for each location
 
   #wellPanel(
@@ -204,6 +209,7 @@ observeEvent(input$run, {   # create run button to plot graphs
 
    # output single line plot for screening rates of all locations together
    output$plot.allLocationsSummary = renderPlot({
+     
 
     date_summary = data()%>%summarize(min_date = min(date), max_date = max(date))   # determine first and last dates plotted
 
@@ -339,6 +345,8 @@ observeEvent(input$run, {   # create run button to plot graphs
       )
     }
   )
+  
+  #output$debug <- renderText({print(data())})
 }
 
 
