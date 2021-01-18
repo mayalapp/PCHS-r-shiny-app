@@ -17,14 +17,20 @@ library(lubridate)
 source("functions.R")
 
 
+# -------------------------------------------------------------------------------------------#
+
+#--------------------
 # creates r shiny user interface
+#--------------------
+
 ui = fluidPage(
 
   verticalLayout(
 
     # get user inputs
   wellPanel(
-    # dropdown with different screening options. starts on blank. affects notes on which patients are used, report title, and graph titles
+    # dropdown with different screening options. starts on blank. 
+    # affects notes on which patients are used, report title, and graph titles
       selectInput(inputId = "screening.type", label = "Choose screening type",
                         choices = c("","Colorectal Cancer Screening", "Mammogram Screening", "Cervical Cancer Screening")),
 
@@ -50,28 +56,31 @@ ui = fluidPage(
   titlePanel(textOutput(outputId = "report.title")),
   verbatimTextOutput(outputId = "notes"),  # notes on which patients are included in screening rates
   h3(textOutput(outputId = "text.PCHS")),
-  textOutput(outputId = "warn.no.files"), # currently not used?
+  # textOutput(outputId = "warn.no.files"), # currently not used
   
   # for debugging
-  textOutput(outputId = "debug"), 
+  # textOutput(outputId = "debug"), 
   
-  plotOutput(outputId = "plot.allLocationsSummary", height = 500), # outputs one plot with a line for each location
+  # outputs one plot with a line for each location
+  plotOutput(outputId = "plot.allLocationsSummary", height = 500), 
 
-  #wellPanel(
-    headerPanel(""),  # add space
-    h3(textOutput(outputId = "text.locations")),  # separate plots of each individual location
-  #),
+  headerPanel(""),  # add space
+  h3(textOutput(outputId = "text.locations")),  # header for plots of each individual site
 
-  plotOutput(outputId = "plot.individualLocations") # outputs two plots for each location - total patients and screening rate
+  # outputs two plots for each location - total patients and screening rate
+  plotOutput(outputId = "plot.individualLocations") 
   )
 )
 
 
 # -------------------------------------------------------------------------------------------#
 
+#--------------------
+# CREATES THE OBJECTS THAT ARE OUTPUTTED/INPUTTED TO THE APP
+#--------------------
 
 server = function(input, output){
-
+  #--------------------
   # SETTING UP PLOTS
   #--------------------
 
