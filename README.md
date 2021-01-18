@@ -6,7 +6,7 @@ It uses quarterly reports outputted from Eye-to-Eye, and may be generalized to b
 
 # Purpose
 
-To easily convert quarterly reports into time-series visuals. This will allow PCHS to observe changes in cancer screening rates over time, identify sites that should be targeted for policies to improve cancer screening, and evaluate whether such policies are successful and should be continued or propogated to new sites. 
+To easily convert quarterly report data into time-series visuals. This will allow PCHS to observe changes in cancer screening rates over time, identify sites that should be targeted for policies to improve cancer screening, and evaluate whether such policies are successful and should be continued or propogated to new sites. 
 
 # Usage
 
@@ -22,15 +22,14 @@ Example files are provided in the `quarterlyReports` directory. Important format
 - The words "Item" and "Location" should not be used anywhere except to note the rows where the type of data and the site names are indicated, respectively
 - Follow the format of the example files as closely as possible to ensure the app does not fail. 
 
+If a datafile gets currupted (will not load on the app), try copying the information to a new excel file and saving it as a new file. 
 
 # Future work
 
 1. Check if "3 years" should be changed to "1 year" 
 1. Ensure that labels on the pdf plots output do not fail when adding more than 4 quarters of data
 1. Add instructions so users with little computer experience can easily use the R Shiny app
-1. Test using facet-wrap and facet-grid for plots 
 1. Make more generalizable for other organizations 
    1. Make file of data "essentials" 
    1. Make screening report types more generalizable (names, descriptions, etc.) 
-1. If file won't load - copy and paste into new excel file and resave 
 1. Update readme
