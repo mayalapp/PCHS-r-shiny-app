@@ -94,11 +94,13 @@ extract_data <- function(quart_report, report_date){
         } else{ # for data tables summarizing screening rate for all locations together
             location = "All"
 
-            # create vector with total number of patients for each location
-            all_patients = table_i_data[first_data_row_index, value_col_index] %>% t() %>% as.numeric()
+            # create vector with total number of patients for "All"
+            # (only select first value column in case multiple quarters of data are given)
+            all_patients = table_i_data[first_data_row_index, value_col_index[1]] %>% t() %>% as.numeric()
 
-            # create vector with number of screen patients at each location
-            screened_patients = table_i_data[first_data_row_index+1, value_col_index ] %>% t() %>% as.numeric()
+            # create vector with number of screen patients at "All" 
+            # (only select first value column in case multiple quarters of data are given)
+            screened_patients = table_i_data[first_data_row_index+1, value_col_index[1] ] %>% t() %>% as.numeric()
 
             # create vector with screening rate at each location
             screening_rate = screened_patients / all_patients * 100
