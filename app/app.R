@@ -10,7 +10,7 @@ library(patchwork)
 library(shinyFiles)
 library(directlabels)
 library(colorspace)
-#library(lubridate)
+library(lubridate)
 
 
 # functions to extract data from xlsx files - do not require user inputted values
