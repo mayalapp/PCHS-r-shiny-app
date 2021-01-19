@@ -59,7 +59,7 @@ ui = fluidPage(
   # textOutput(outputId = "warn.no.files"), # currently not used
   
   # for debugging
-  # textOutput(outputId = "debug"), 
+  dataTableOutput(outputId = "debug"), 
   
   # outputs one plot with a line for each location
   plotOutput(outputId = "plot.allLocationsSummary", height = 500), 
@@ -119,8 +119,16 @@ server = function(input, output){
   #      ymin - y axis minimum value
   #      ymax - y axis max value
   create_screening_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
-    df%>%filter(location == loc)%>%
+    loc_data = df %>%filter(location == loc)
+    
+    loc_data %>% 
       ggplot(aes(x = date, y = screening_rate))+
+      
+      # line showing where measurements changed from all patients in past 3 years to past 12 months 
+      geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
+      annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = ymax - 1, 
+               label = "Redefine 'All Patients'", color = "grey")+
+      
       geom_line(size = 1.5, color = mycolor)+
       theme_bw()+
       guides(size = FALSE)+
@@ -189,25 +197,29 @@ print(clean_data)
 
    if(input$screening.type == "Colorectal Cancer Screening"){
      paste("Notes on patient data: ","","All patients: ","Active patients between 50 and 75 years of age that DO NOT have colorectal cancer that had a
-medical visit during the 3 years prior to the end of the reporting period. ", "",
+medical visit during the 12 months prior to the end of the reporting period. 
+(Note: prior to January 2021, all patients from the 3 years prior to the reporting period were included in reports.) ", "",
                  "Screened patients: ", "Patients that received Colonscopy in the last 10 years; Fecal Immunochemical Test (FIT)
 in the last 1 year; Fecal Occult Testing (FOBT) in the 1  year; or FIT DNA in the last 3 years.", sep = "\n")
 
    }else if(input$screening.type == "Cervical Cancer Screening"){
-     paste("Notes on patient data: ","","All patients: ", "Active Female patients between 21 and 64 years that had a visit during the 3 years prior
-to the end of the reporting period and that DID  NOT received a hysterectomy. ", "",
+     paste("Notes on patient data: ","","All patients: ", "Active Female patients between 21 and 64 years that had a visit during the 12 months prior
+to the end of the reporting period and that DID  NOT received a hysterectomy. 
+(Note: prior to January 2021, all patients from the 3 years prior to the reporting period were included in reports.) ", "",
                  "Screened patients:", "Active Female patients between 21 and 29 years that had a cevical cancer screening within
 the last 3 years or active female patients between 30 and 64 years old that had a cervical cancer
 screening within the last 5 years.", sep = "\n")
    }else if(input$screening.type == "Mammogram Screening"){
      paste("Notes on patient data: ","","All patients: ", "Active Female patients between the 50 and 74 years of age that DID NOT have a mastectomy and
-that  had a medical visit during the 3 years prior to the end of the reporting period. ","",
+that  had a medical visit during the 12 months prior to the end of the reporting period. 
+(Note: prior to January 2021, all patients from the 3 years prior to the reporting period were included in reports.) ","",
                  "Screened patients: ", "Patients that received a mammogram during the 2 years prior to the end of the reporting period.", sep = "\n")
 
    }
  })
 
 
+ 
 observeEvent(input$run, {   # create run button to plot graphs
 
   #######################################
@@ -235,6 +247,12 @@ observeEvent(input$run, {   # create run button to plot graphs
     # create plot
     p1[[2]] = data()%>%
       ggplot(aes(x = date, y = screening_rate, color = location))+
+      
+      # line showing where measurements changed from all patients in past 3 years to past 12 months 
+      geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
+      annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = max(data()$screening_rate) + 5, 
+               label = "Redefine 'All Patients'", color = "grey")+
+      
       geom_line(data = data()%>%filter(location == "All"), color = "grey", size = 10, alpha = 0.5)+   # plot shadow around "All" (behind other lines)
       geom_point(aes())+ # plot points for all sites
       geom_line(aes(), size = 1.5)+ # plot lines for all sites
