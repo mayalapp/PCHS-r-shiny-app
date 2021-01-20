@@ -23,13 +23,3 @@ Example files are provided in the `quarterlyReports` directory. Important format
 - Follow the format of the example files as closely as possible to ensure the app does not fail. 
 
 If a datafile gets currupted (will not load on the app), try copying the information to a new excel file and saving it as a new file. 
-
-# Future work
-
-1. Check if "3 years" should be changed to "1 year" 
-1. Ensure that labels on the pdf plots output do not fail when adding more than 4 quarters of data
-1. Add instructions so users with little computer experience can easily use the R Shiny app
-1. Make more generalizable for other organizations 
-   1. Make file of data "essentials" 
-   1. Make screening report types more generalizable (names, descriptions, etc.) 
-1. Update readme
