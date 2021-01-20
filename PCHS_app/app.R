@@ -121,15 +121,20 @@ server = function(input, output){
   create_screening_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
     loc_data = df %>%filter(location == loc)
     
-    loc_data %>% 
-      ggplot(aes(x = date, y = screening_rate))+
+    p = loc_data %>% 
+      ggplot(aes(x = date, y = screening_rate))
+    
+    # if we're using cancer screening, add a line showing what date PCHS changed how they measure screening rate
+    if(input$screening.type != ""){
+      p = p +       
+        # line showing where measurements changed from all patients in past 3 years to past 12 months 
+        geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
+        annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = ymax - 1, 
+                 label = "Redefine 'All Patients'", color = "grey")
+    }
       
-      # line showing where measurements changed from all patients in past 3 years to past 12 months 
-      geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
-      annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = ymax - 1, 
-               label = "Redefine 'All Patients'", color = "grey")+
-      
-      geom_line(size = 1.5, color = mycolor)+
+      p = p + 
+        geom_line(size = 1.5, color = mycolor)+
       theme_bw()+
       guides(size = FALSE)+
       labs(x = "Date", y = "Number of Patients")+
@@ -138,6 +143,8 @@ server = function(input, output){
       ggtitle(paste(loc, input$screening.type, "Rate"))+
       plot_options+
       scale_x_date(date_labels = "%b %Y")
+      
+      p
   }
 
   # creates screening line plot for a specific location
@@ -246,14 +253,19 @@ observeEvent(input$run, {   # create run button to plot graphs
 
     # create plot
     p1[[2]] = data()%>%
-      ggplot(aes(x = date, y = screening_rate, color = location))+
-      
-      # line showing where measurements changed from all patients in past 3 years to past 12 months 
-      geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
-      annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = max(data()$screening_rate) + 5, 
-               label = "Redefine 'All Patients'", color = "grey")+
-      
-      geom_line(data = data()%>%filter(location == "All"), color = "grey", size = 10, alpha = 0.5)+   # plot shadow around "All" (behind other lines)
+      ggplot(aes(x = date, y = screening_rate, color = location))
+    
+    # if we're using cancer screening, add a line showing what date PCHS changed how they measure screening rate
+    if(input$screening.type != ""){
+      p1[[2]] = p1[[2]] + 
+        # line showing where measurements changed from all patients in past 3 years to past 12 months 
+        geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
+        annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = max(data()$screening_rate) + 5, 
+                 label = "Redefine 'All Patients'", color = "grey")
+    }
+
+    p1[[2]] = p1[[2]] + 
+      geom_line(data = data()%>%filter(location == "All"), color = "grey", size = 10, alpha = 0.5) +   # plot shadow around "All" (behind other lines)
       geom_point(aes())+ # plot points for all sites
       geom_line(aes(), size = 1.5)+ # plot lines for all sites
       geom_line(data = data()%>%filter(location == "All"), color = "black", size = 1.5)+   # plot "All" on top of other lines
