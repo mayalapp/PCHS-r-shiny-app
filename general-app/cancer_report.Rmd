@@ -4,6 +4,7 @@ params:
     screening.type: ""
     screening.data: data.frame()
     label.months: 2
+    patient.notes: ""
     
 title: "`r params$screening.type` Report `r Sys.Date()`" 
 classoption: landscape
@@ -100,32 +101,9 @@ create_patient_barplot = function(df, loc, ymax,  mycolor = "grey"){
 
 ```
 
-```{r CreateNotes, include = FALSE}
-# create notes on patients included in "All patients" and screening rates
-notes = "No notes on patients for selected screening type." 
-if(params$screening.type == "Colorectal Cancer Screening"){
-     notes = paste("Notes on patient data: ","","All patients: ","Active patients between 50 and 75 years of age that DO NOT have colorectal cancer that had a
-medical visit during the 3 years prior to the end of the reporting period. ", "",
-                 "Screened patients: ", "Patients that received Colonscopy in the last 10 years; Fecal Immunochemical Test (FIT)
-in the last 1 year; Fecal Occult Testing (FOBT) in the 1  year; or FIT DNA in the last 3 years.", " "," ",sep = "\n")
-
-   }else if(params$screening.type == "Cervical Cancer Screening"){
-     notes = paste("Notes on patient data: ","","All patients: ", "Active Female patients between 21 and 64 years that had a visit during the 3 years prior
-to the end of the reporting period and that DID  NOT received a hysterectomy. ", "",
-                 "Screened patients:", "Active Female patients between 21 and 29 years that had a cevical cancer screening within
-the last 3 years or active female patients between 30 and 64 years old that had a cervical cancer
-screening within the last 5 years.", " "," ",sep = "\n")
-   }else if(params$screening.type == "Mammogram Screening"){
-     notes = paste("Notes on patient data: ","","All patients: ", "Active Female patients between the 50 and 74 years of age that DID NOT have a mastectomy and
-that  had a medical visit during the 3 years prior to the end of the reporting period. ","",
-                 "Screened patients: ", "Patients that received a mammogram during the 2 years prior to the end of the reporting period.", " ", " ",sep = "\n")
-
-   }
-```
-
 
 <!-- Output patient notes -->
-`r notes` 
+`r params$patient.notes` 
 
 ```{r, echo = FALSE, fig.height=1}
 ggplot(data = NULL)+ theme_void()

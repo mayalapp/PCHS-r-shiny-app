@@ -1,5 +1,5 @@
 #https://shiny.rstudio.com/tutorial/
-
+# health reports app
 
 # load required libraries
 library(shiny)
@@ -236,22 +236,22 @@ print(clean_data)
 
   # OUTPUTS
   #------------------------------
-  
-# output report title  - based on input$screening.type
- output$report.title = renderText({ 
-   paste(report_type(), "Report")
-   })
-
-
- # output notes on patients included in "All patients" and screening rates
- output$notes = renderText({
-  paste(patient_notes())
- })
-
 
  
 observeEvent(input$run, {   # create run button to plot graphs
 
+  
+  # output report title  - based on input$screening.type
+  output$report.title = renderText({ 
+    paste(report_type(), "Report")
+  })
+  
+  
+  # output notes on patients included in "All patients" and screening rates
+  output$notes = renderText({
+    paste(patient_notes())
+  })
+  
   #######################################
 
   # PCHS PLOTS
@@ -371,11 +371,16 @@ observeEvent(input$run, {   # create run button to plot graphs
  }) # isolate end
 
 
+
+#######################################
+# PDF DOWNLOAD
+# ------------------------------
+
 # make button so report can be downloaded as pdf
   output$download.report <- downloadHandler(
     # file name should be screeningtype_report_todaysDate.pdf
     filename = function() {
-      paste(input$report.type, "_report_", Sys.Date(), ".pdf", sep="")
+      paste(report_type(), "_report_", Sys.Date(), ".pdf", sep="")
     },
     content = function(file) {
       # Copy the report file to a temporary directory before processing it, in
@@ -385,7 +390,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       file.copy("cancer_report.Rmd", tempReport, overwrite = TRUE)
 
       # Set up parameters to pass to Rmd document
-      params <- list(screening.type = input$report.type, screening.data = data())
+      params <- list(screening.type = report_type(), screening.data = data(), patient.notes = patient_notes())
 
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document
