@@ -2,7 +2,7 @@
 
 # gets date for the report
 # IMPORTANT: bases date off of file name of the report NOT the dates actually in the file
-# inputs: file_name - file name of the report. should be of the form "MM-DD-YY PCHS xxxxx Screening Rate.xlsx"
+# inputs: file_name - file name of the report. should be of the form "MM-DD-YY PCHS xxxxx Rate.xlsx"
 # output: date for this quarterly report
 extract_date = function(file_name){
     temp = strsplit(file_name, split = " ")
@@ -67,12 +67,12 @@ find_word_row <- function(df, wrd){
 }
 
 
-# extracts the screening rates and patient numbers from the quarterly report
+# extracts the rates and patient numbers from the quarterly report
 # inputs:
 #     quart_report - the dataframe with the information read directly from the quarterly report xlsx file
 #     report_date - the date of the quarterly report file - extracted from file name via extract_date
-# output: a clean dataframe with location, date, screening rate, and total number of patients for each quarter.
-#         Also includes screening rate for all of PCHS
+# output: a clean dataframe with location, date, rate, and total number of patients for each quarter.
+#         Also includes rate for all of PCHS
 extract_data <- function(quart_report, report_date){
     
     clean_data = data.frame()
@@ -108,7 +108,7 @@ extract_data <- function(quart_report, report_date){
         
         
         # extracts data - two options - data table with multiple locations or All data
-        # creates vectors with total number of patients, screened patients, and screening rate
+        # creates vectors with total number of patients, patients that meet the criteria (criteria_patients), and rate
         if(length(loc_row_index > 0 )){   # if we are on a data table with multiple locations
             
             # find columns with location names (anywhere that isn't blank in the "location" row except the first column with the word "Location")
@@ -120,29 +120,29 @@ extract_data <- function(quart_report, report_date){
             # create vector with total number of patients for each location
             all_patients = table_i_data[first_data_row_index, loc_col_index] %>% t() %>% as.numeric()
             
-            # create vector with number of screen patients at each location
-            screened_patients = table_i_data[first_data_row_index+1, loc_col_index ] %>% t() %>% as.numeric()
+            # create vector with number of patients that meet criteria at each location
+            criteria_patients = table_i_data[first_data_row_index+1, loc_col_index ] %>% t() %>% as.numeric()
             
-            # create vector with screening rate at each location
-            screening_rate = screened_patients / all_patients * 100
+            # create vector with rate at which patients meet criteria at each location
+            rate = criteria_patients / all_patients * 100
             
-        } else{ # for data tables summarizing screening rate for all locations together
+        } else{ # for data tables summarizing  rate for all locations together
             location = "All"
             
             # create vector with total number of patients for "All"
             # (only select first value column in case multiple quarters of data are given)
             all_patients = table_i_data[first_data_row_index, value_col_index[1]] %>% t() %>% as.numeric()
             
-            # create vector with number of screen patients at "All" 
+            # create vector with number of criteria_patients at "All" 
             # (only select first value column in case multiple quarters of data are given)
-            screened_patients = table_i_data[first_data_row_index+1, value_col_index[1] ] %>% t() %>% as.numeric()
+            criteria_patients = table_i_data[first_data_row_index+1, value_col_index[1] ] %>% t() %>% as.numeric()
             
-            # create vector with screening rate at each location
-            screening_rate = screened_patients / all_patients * 100
+            # create vector with  rate at each location
+            rate = criteria_patients / all_patients * 100
         }
         
         # put all  vectors into df for this data table
-        clean_data_i = data.frame(location = location, screening_rate = screening_rate, all_patients= all_patients, screened_patients = screened_patients)
+        clean_data_i = data.frame(location = location, rate = rate, all_patients= all_patients, criteria_patients = criteria_patients)
         label.months = 3
         # add date to df
         if(i <= 2 && length(item_index) > 2){ # first two data tables are for the data from the previous quarter, when 2 quarters are given

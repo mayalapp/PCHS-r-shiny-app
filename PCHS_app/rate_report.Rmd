@@ -1,12 +1,12 @@
 ---
 output: pdf_document
 params: 
-    screening.type: ""
-    screening.data: data.frame()
+    report.type: ""
+    rate.data: data.frame()
     patient.notes: ""
     label.months: 2
     
-title: "`r params$screening.type` Report `r Sys.Date()`" 
+title: "`r params$report.type` Report `r Sys.Date()`" 
 classoption: landscape
 
 ---
@@ -16,8 +16,8 @@ classoption: landscape
 ```{r parameterizedRmarkdownCode, eval = FALSE, include = FALSE}
 #used to run rmarkdown with parameters 
 rmarkdown::render("cancer_report.Rmd", params = list(
-  screening.type = "Colorectal Cancer Screening",
-  screening.data = clean_data,  
+  report.type = "Colorectal Cancer Screening",
+  rate.data = clean_data,  
   label.months = 3
 ))
 ```
@@ -33,19 +33,19 @@ library(shinyFiles)
 library(directlabels)
 library(colorspace)
 
-# setting up axes for plots - note: titles of plots based on params$screening.type
+# setting up axes for plots - note: titles of plots based on params$report.type
  ax.date = expression(atop(bold("Date"), "   "))
- ax.screening = expression(atop("   ", bold("Screening Rate (%)")))
+ ax.rate= expression(atop("   ", bold("Rate (%)")))
  ax.patients = "Number of Patients"
  ax.location = "Site"
  
   # create variable for title of All patients plots
  title.patients = ""
-   if(params$screening.type == "Colorectal Cancer Screening"){
+   if(params$report.type == "Colorectal Cancer Screening"){
      title.patients = "Patients 50-75 Years Old"
-   }else if(params$screening.type == "Cervical Cancer Screening"){
+   }else if(params$report.type == "Cervical Cancer Screening"){
      title.patients = "Female Patients 21-64 Years Old"
-   }else if(params$screening.type == "Mammogram Screening"){
+   }else if(params$report.type == "Mammogram Screening"){
      title.patients = "Female Patients 50-74 Years Old"
    }
  
@@ -62,20 +62,20 @@ plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#
 ```
 
 ```{r plotFunctions, include = FALSE}
-# creates screening line plot for a specific location
+# creates rate line plot for a specific location
 # inputs:
 #      df - dataframe with full cleaned data (including all locations)
 #      loc - string of location name
 #      ymin - y axis minimum value
 #      ymax - y axis max value
-create_screening_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
+create_rate_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
     loc_data = df %>%filter(location == loc)
     
     p = loc_data %>% 
-      ggplot(aes(x = date, y = screening_rate))
+      ggplot(aes(x = date, y = rate))
     
     # if we're using cancer screening, add a line showing what date PCHS changed how they measure screening rate
-    if(params$screening.type != ""){
+    if(params$report.type != ""){
       p = p +  
         # line showing where measurements changed from all patients in past 3 years to past 12 months 
         geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
@@ -89,15 +89,15 @@ create_screening_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
       guides(size = FALSE)+
       labs(x = "Date", y = "Number of Patients")+
       ylim(ymin, ymax)+
-      labs(x = ax.date, y = ax.screening)+
-      ggtitle(paste(loc, params$screening.type, "Rate"))+
+      labs(x = ax.date, y = ax.rate)+
+      ggtitle(paste(loc, params$report.type, "Rate"))+
       plot_options+
       scale_x_date(date_labels = "%b %Y")
       
       p
   }
 
-# creates screening line plot for a specific location
+# creates patient bar plot for a specific location
 # inputs:
 #      df - dataframe with full cleaned data (including all locations)
 #      loc - string of location name
@@ -125,9 +125,9 @@ ggplot(data = NULL)+ theme_void()
 ```
 
 ```{r allSitesBarplot, include = FALSE}
-date_summary = params$screening.data%>%summarize(min_date = min(date), max_date = max(date))   # determine first and last dates plotted
+date_summary = params$rate.data%>%summarize(min_date = min(date), max_date = max(date))   # determine first and last dates plotted
 
-    p1= params$screening.data%>%filter(location == "All")%>%
+    p1= params$rate.data%>%filter(location == "All")%>%
       ggplot(aes(x = date, y = all_patients))+
       geom_bar(stat = "identity")+
       theme_bw()+
@@ -138,28 +138,28 @@ date_summary = params$screening.data%>%summarize(min_date = min(date), max_date 
 ```
 ```{r allSitesLineplot, include = FALSE}
     # create plot
-    p2= params$screening.data%>%
-      ggplot(aes(x = date, y = screening_rate, color = location))
+    p2= params$rate.data%>%
+      ggplot(aes(x = date, y = rate, color = location))
 
-if(params$screening.type != ""){
+if(params$report.type != ""){
       p2 = p2 + 
         # line showing where measurements changed from all patients in past 3 years to past 12 months 
         geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
-        annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = max(params$screening.data$screening_rate) + 5, 
+        annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = max(params$rate.data$rate) + 5, 
                  label = "Redefine 'All Patients'", color = "grey")
 }
 
 p2 = p2 + 
-      geom_line(data = params$screening.data%>%filter(location == "All"), color = "grey", size = 10, alpha = 0.5)+   # plot shadow around "All" (behind other lines)
+      geom_line(data = params$rate.data%>%filter(location == "All"), color = "grey", size = 10, alpha = 0.5)+   # plot shadow around "All" (behind other lines)
       geom_point(aes())+ # plot points for all sites
       geom_line(aes(), size = 1.5)+ # plot lines for all sites
-      geom_line(data = params$screening.data%>%filter(location == "All"), color = "black", size = 1.5)+   # plot "All" on top of other lines
+      geom_line(data = params$rate.data%>%filter(location == "All"), color = "black", size = 1.5)+   # plot "All" on top of other lines
       #xlim(date_summary$min_date, date_summary$max_date + months(8))+   # change x axis lims?
-      #annotate("text", x = annotation$date + months(1), y = annotation$screening_rate, label = "  ", size = 10)+   # annotation for avg. rate
+      #annotate("text", x = annotation$date + months(1), y = annotation$rate, label = "  ", size = 10)+   # annotation for avg. rate
       theme_bw()+
       guides(size = FALSE, color = FALSE)+   # don't include legend for size of dots
-      labs(x = ax.date, y = ax.screening, color = ax.location)+
-      ggtitle(paste("PCHS",params$screening.type, "Rates"))+
+      labs(x = ax.date, y = ax.rate, color = ax.location)+
+      ggtitle(paste("PCHS",params$report.type, "Rates"))+
       plot_options+
       scale_x_date(#date_breaks = "3 months",
                    date_labels = "%b %Y",
@@ -192,30 +192,30 @@ print(p2)
 <!-- # Graphs for individual sites -->
 ```{r plotIndividualSites, echo = FALSE}
 # find max number of patients
-    max_patients = params$screening.data%>%filter(location != "All")%>%group_by(location)%>%summarize(max_patients_loc = max(all_patients))%>%filter(max_patients_loc == max(max_patients_loc))
+    max_patients = params$rate.data%>%filter(location != "All")%>%group_by(location)%>%summarize(max_patients_loc = max(all_patients))%>%filter(max_patients_loc == max(max_patients_loc))
     max_patients = max_patients$max_patients_loc
 
-    # find max range of screening rates for single location
-    temp_data = params$screening.data%>%filter(location!="All")%>%group_by(location)%>%
-      summarize(rate_range = max(screening_rate)- min(screening_rate),   # find ranges of screening rates for each location
-                middle_rate = min(screening_rate) + 0.5 * rate_range)    # find middle between max and min screening rate for each locaiton
+    # find max range of rates for single location
+    temp_data = params$rate.data%>%filter(location!="All")%>%group_by(location)%>%
+      summarize(rate_range = max(rate)- min(rate),   # find ranges of rates for each location
+                middle_rate = min(rate) + 0.5 * rate_range)    # find middle between max and min rate for each locaiton
     max_range = temp_data%>%filter(rate_range == max(rate_range)) # calculate max range
     max_range = max_range$rate_range                              # isolate max range as a number
     y_ranges = temp_data%>%mutate(ymin = middle_rate - 0.5 * max_range, ymax = middle_rate + 0.5 * max_range)  # create new ranges for y axes
 
 
-    nLocations = length(unique(params$screening.data$location))    # get number of locations in dataset
+    nLocations = length(unique(params$rate.data$location))    # get number of locations in dataset
     p3 = list()   # initialize list of all patients bar graph
 
     # for each location, create both plots
     for( i in 1:(nLocations-1)){
 
-      location_i = params$screening.data$location[i]                   # get name of ith location
+      location_i = params$rate.data$location[i]                   # get name of ith location
 
       # create all patient bar graph
-      p1 = create_patient_barplot(params$screening.data, location_i, max_patients, plot_colors[i+1])#+scale_fill_manual(values = c(plot_colors[i+1], "black"))
-      #create screening rate line plots
-      p2 = create_screening_plot(params$screening.data, location_i, y_ranges$ymin[i], y_ranges$ymax[i], plot_colors[i+1])#+scale_color_manual(values = c(plot_colors[i+1], "black"))
+      p1 = create_patient_barplot(params$rate.data, location_i, max_patients, plot_colors[i+1])#+scale_fill_manual(values = c(plot_colors[i+1], "black"))
+      #create rate line plots
+      p2 = create_rate_plot(params$rate.data, location_i, y_ranges$ymin[i], y_ranges$ymax[i], plot_colors[i+1])#+scale_color_manual(values = c(plot_colors[i+1], "black"))
 
       print(p1)
       print(p2)
