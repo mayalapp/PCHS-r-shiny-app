@@ -213,7 +213,7 @@ in the last 1 year; Fecal Occult Testing (FOBT) in the 1  year; or FIT DNA in th
      paste("Notes on patient data: ","","All patients: ", "Active Female patients between 21 and 64 years that had a visit during the 12 months prior
 to the end of the reporting period and that DID  NOT received a hysterectomy. 
 (Note: prior to January 2021, all patients from the 3 years prior to the reporting period were included in reports.) ", "",
-                 "Screened patients:", "Active Female patients between 21 and 29 years that had a cevical cancer screening within
+                 "Screened patients:", "Active Female patients between 21 and 29 years that had a cervical cancer screening within
 the last 3 years or active female patients between 30 and 64 years old that had a cervical cancer
 screening within the last 5 years.", sep = "\n")
    }else if(input$screening.type == "Mammogram Screening"){
