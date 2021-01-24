@@ -29,6 +29,10 @@ ui = fluidPage(
 
     # get user inputs
   wellPanel(
+    
+    # if this is checked, extract the title name and notes from the data file 
+    checkboxInput(inputId = "extract.title", label = "Check here to extract report title and notes from data file", value = FALSE), 
+    
     # takes text input for report type
     # used for report title and graph titles
     textInput(inputId = "report.type", label = "Type in report type here:", value = "") , 
@@ -128,7 +132,7 @@ server = function(input, output){
       labs(x = "Date", y = "Number of Patients")+
       ylim(ymin, ymax)+
       labs(x = ax.date, y = ax.screening)+
-      ggtitle(paste(loc, input$report.type, "Rate"))+
+      ggtitle(paste(loc, report_type(), "Rate"))+
       plot_options+
       scale_x_date(date_labels = "%b %Y")
   }
@@ -176,18 +180,72 @@ print(clean_data)
    clean_data
   }
   )
+  
+  # get report type - either from input or from the quarterly report files 
+  report_type = reactive({
+    # if checkbox indicates we should extract the title of the report from the quarterly report file 
+    if(input$extract.title){
+      report_type = "" 
+      
+      # read in report title for each file, and take one file that has a report type
+      # (takes the last file that has a report type included)
+      for(i in 1:length(input$files$name)){
+        quart_report = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
+        temp = extract_reportTitle(quart_report)
+        
+        if(temp != ""){
+          report_type = temp
+        }
+      }
+      
+      paste(report_type)
+    }
+    else{ # otherwise, take report type from input 
+      paste(input$report.type)
+    }
+  })
+  
+  
+  # get notes - either from input or from the quarterly report files 
+  patient_notes = reactive({
+    # if checkbox indicates we should extract the title of the report from the quarterly report file 
+    if(input$extract.title){
+      patient_notes = "" 
+      
+      # read in notes for each file, and take one file that has the notes
+      # (takes the last file that has notes included)
+      for(i in 1:length(input$files$name)){
+        quart_report = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
+        temp = extract_patientNotes(quart_report)
+        
+        if(patient_notes == ""){
+          patient_notes = temp
+        }
+      }
+      
+      paste(patient_notes)
+    }
+    else{ # otherwise, take notes from input 
+      paste(input$notes)
+    }
+  })
+  
+  
 
   #######################################
 
   # OUTPUTS
   #------------------------------
+  
 # output report title  - based on input$screening.type
- output$report.title = renderText({ paste(input$report.type, "Report")})
+ output$report.title = renderText({ 
+   paste(report_type(), "Report")
+   })
 
 
  # output notes on patients included in "All patients" and screening rates
  output$notes = renderText({
-  input$notes
+  paste(patient_notes())
  })
 
 
@@ -228,7 +286,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       theme_bw()+
       guides(size = FALSE, color = FALSE)+   # don't include legend for size of dots
       labs(x = ax.date, y = ax.screening, color = ax.location)+
-      ggtitle(paste(input$report.type, "Rates"))+
+      ggtitle(paste(report_type(), "Rates"))+
       plot_options+
       scale_x_date(#date_breaks = "3 months",
                    date_labels = "%b %Y",

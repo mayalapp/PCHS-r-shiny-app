@@ -12,6 +12,41 @@ extract_date = function(file_name){
 }
 
 
+# gets title for the report
+# IMPORTANT: to extract report title, first cell of file must say "Report type" 
+# inputs: raw quarterly report  
+# output: name extracted from dataframe - empty string if no name is detected 
+extract_reportTitle = function(quarterly_report){
+    report_title = ""
+    
+    if(quarterly_report[1,1] == "Report type"){
+        report_title = quarterly_report[1,2]
+    }
+    
+    return(report_title)
+}
+
+# gets notes about patients 
+# IMPORTANT: to extract notes, second cell of file must say "Notes" 
+# inputs: raw quarterly report 
+# output: name extracted from dataframe - empty string if no name is detected 
+extract_patientNotes = function(quarterly_report){
+    patient_notes = ""
+    
+    if(!is.na(quarterly_report[2,1]) && quarterly_report[2,1] == "Notes"){
+        i = 2
+        
+        while(!is.na(quarterly_report[i,2])){
+            patient_notes = paste(patient_notes,quarterly_report[i,2], sep = "\n")
+            i = i + 1
+        }
+        
+    }
+    
+    return(patient_notes)
+}
+
+
 # finds row indices where a word is located in a df
 # IMPORTANT: don't include the word "item" in the patient notes - could mess this function up
 # inputs: df - raw df of data from we are interested in searching
