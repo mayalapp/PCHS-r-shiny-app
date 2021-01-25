@@ -74,14 +74,15 @@ create_rate_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
     p = loc_data %>% 
       ggplot(aes(x = date, y = rate))
     
+    # don't include this for now 
     # if we're using cancer screening, add a line showing what date PCHS changed how they measure screening rate
-    if(params$report.type != ""){
-      p = p +  
-        # line showing where measurements changed from all patients in past 3 years to past 12 months 
-        geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
-        annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = ymax - 1, 
-                 label = "Redefine 'All Patients'", color = "grey")
-    } 
+    # if(params$report.type != ""){
+    #   p = p +  
+    #     # line showing where measurements changed from all patients in past 3 years to past 12 months 
+    #     geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
+    #     annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = ymax - 1, 
+    #              label = "Redefine 'All Patients'", color = "grey")
+    # } 
     
     p = p + 
         geom_line(size = 1.5, color = mycolor)+
@@ -141,13 +142,14 @@ date_summary = params$rate.data%>%summarize(min_date = min(date), max_date = max
     p2= params$rate.data%>%
       ggplot(aes(x = date, y = rate, color = location))
 
-if(params$report.type != ""){
-      p2 = p2 + 
-        # line showing where measurements changed from all patients in past 3 years to past 12 months 
-        geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
-        annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = max(params$rate.data$rate) + 5, 
-                 label = "Redefine 'All Patients'", color = "grey")
-}
+# don't include line where measurement changed 
+# if(params$report.type != ""){
+#       p2 = p2 + 
+#         # line showing where measurements changed from all patients in past 3 years to past 12 months 
+#         geom_vline(xintercept = as.Date("11/01/2020", format = "%m/%d/%Y"), color = "grey", linetype = "dashed")+ 
+#         annotate("text",x = as.Date("11/01/2020", format = "%m/%d/%Y"), y = max(params$rate.data$rate) + 5, 
+#                  label = "Redefine 'All Patients'", color = "grey")
+# }
 
 p2 = p2 + 
       geom_line(data = params$rate.data%>%filter(location == "All"), color = "grey", size = 10, alpha = 0.5)+   # plot shadow around "All" (behind other lines)

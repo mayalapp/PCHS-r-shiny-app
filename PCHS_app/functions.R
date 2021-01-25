@@ -27,7 +27,7 @@ extract_reportTitle = function(quarterly_report){
 }
 
 # gets notes about patients 
-# IMPORTANT: to extract notes, second cell of file must say "Notes" 
+# IMPORTANT: to extract notes, second cell of file (A2) must say "Notes" 
 # inputs: raw quarterly report 
 # output: name extracted from dataframe - empty string if no name is detected 
 extract_patientNotes = function(quarterly_report){

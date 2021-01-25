@@ -1,0 +1,12 @@
+name: time-series-visualizer
+title: time-series-visualizer
+username:
+account: mayalapp
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3515251
+bundleId: 4137919
+url: https://mayalapp.shinyapps.io/time-series-visualizer/
+when: 1611528035.87837
+asMultiple: FALSE
+asStatic: FALSE
