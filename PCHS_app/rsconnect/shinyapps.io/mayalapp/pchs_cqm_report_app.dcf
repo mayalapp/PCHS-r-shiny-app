@@ -1,0 +1,12 @@
+name: pchs_cqm_report_app
+title: pchs_cqm_report_app
+username:
+account: mayalapp
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3570186
+bundleId: 4172917
+url: https://mayalapp.shinyapps.io/pchs_cqm_report_app/
+when: 1612302129.74186
+asMultiple: FALSE
+asStatic: FALSE

@@ -313,6 +313,8 @@ observeEvent(input$run, {   # create run button to plot graphs
 
     # create plot
     p1[[2]] = data()%>%
+      # anonamize sites using this 
+      #mutate(loc2 = ifelse(location == "All", "All sites", paste("Site", as.numeric(location) - 1, sep = " "))) %>%
       ggplot(aes(x = date, y = rate, color = location))
     
     # if we're using cancer screening, add a line showing what date PCHS changed how they measure screening rate

@@ -1,4 +1,5 @@
 experimenting.Rmd
 .DS_Store 
 app_backup.R
-data_for_public_good_pres.pptx
+*.pptx
+*.mp4
