@@ -33,7 +33,7 @@ ui = fluidPage(
     
     
     # if this is checked, extract the title name and notes from the data file 
-    checkboxInput(inputId = "extract.title", label = "Check here to extract report type and notes from data file", value = FALSE), 
+    checkboxInput(inputId = "extract.title", label = "Check here to extract report type and notes from header file", value = FALSE), 
     
     
     # dropdown with different cancer screening options. starts on blank. 
@@ -43,7 +43,8 @@ ui = fluidPage(
 
       # select files needed for report
       fileInput(inputId = "files",
-                label = "Choose quarterly report xlsx files. File names should begin with the date of the quarterly report: \"MM-DD-YY xxxxxxxx.xlsx\". ",
+                label = "Choose quarterly report xlsx files. File names should begin with the date of the quarterly report: \"MM-DD-YY xxxxxxxx.xlsx\". 
+                Also include a header file, if desired. Header file should be named \"header xxxxxxx.xlsx\". ",
                 multiple = TRUE, accept = c(".csv", ".xlsx")),
 
       # edit this if labels start getting cut off - makes weird behavior happen right now
