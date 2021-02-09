@@ -33,7 +33,7 @@ ui = fluidPage(
     # used before to allow users to type in report titles/notes 
     
     # # if this is checked, extract the title name and notes from the data file 
-    # checkboxInput(inputId = "extract.title", label = "Check here to extract report title and notes from data file", value = FALSE), 
+    # checkboxInput(inputId = "extract.title", label = "Check here to extract report title and notes from header file", value = FALSE), 
     # 
     # # takes text input for report type
     # # used for report title and graph titles
@@ -47,7 +47,8 @@ ui = fluidPage(
    
       # select files needed for report
       fileInput(inputId = "files",
-                label = "Choose quarterly report xlsx files. File names should begin with the date of the quarterly report: \"MM-DD-YY xxxxxxxx.xlsx\". ",
+                label = "Choose quarterly report xlsx files. File names should begin with the date of the quarterly report: \"MM-DD-YY xxxxxxxx.xlsx\". 
+                Also include a header file, if desired. Header file should be named \"header xxxxxxx.xlsx\". ",
                 multiple = TRUE, accept = c(".xlsx")),
 
       # edit this if labels start getting cut off - makes weird behavior happen right now
