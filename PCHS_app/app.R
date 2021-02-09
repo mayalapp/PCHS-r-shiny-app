@@ -93,7 +93,7 @@ server = function(input, output){
 
     # setting up axes for plots - note: titles of plots based on input$report.type
     ax.date = "Date"
-    ax.rate = "Rate (%)"
+    # ax.rate = "Rate (%)" set this after getting report type
     ax.patients = "Number of Patients"
     ax.location = "Site"
 
@@ -146,7 +146,7 @@ server = function(input, output){
       guides(size = FALSE)+
       labs(x = "Date", y = "Number of Patients")+
       ylim(ymin, ymax)+
-      labs(x = ax.date, y = ax.rate)+
+      labs(x = ax.date, y = ax.rate())+
       ggtitle(paste(loc, report_type(), "Rate"))+
       plot_options+
       scale_x_date(date_labels = "%b %Y")
@@ -182,9 +182,12 @@ server = function(input, output){
 
    # get data from each file
    for(i in 1:length(input$files$name)){
-     quart_report = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
-     date = extract_date(input$files$name[[i]])                                # extract date from file_i
-     clean_data = rbind(clean_data, extract_data(quart_report, date))          # append data from this report
+     if(!grepl("header", input$files$name[[i]], ignore.case = TRUE)) {
+       quart_report = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
+       date = extract_date(input$files$name[[i]])                                # extract date from file_i
+       clean_data = rbind(clean_data, extract_data(quart_report, date))          # append data from this report
+     }
+     
    }
 
    # data should only contain unique values (get rid of duplicates from files containing info from previous quarter)
@@ -205,14 +208,12 @@ print(clean_data)
     if(input$extract.title){
       report_type = "" 
       
-      # read in report title for each file, and take one file that has a report type
-      # (takes the last file that has a report type included)
+      # read in report title from header file 
       for(i in 1:length(input$files$name)){
-        quart_report = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
-        temp = extract_reportTitle(quart_report)
-        
-        if(temp != ""){
-          report_type = temp
+        if(grepl("header", input$files$name[[i]], ignore.case = TRUE)){ #if this is the header file 
+          header_df = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
+          report_type = extract_reportTitle(header_df)
+          break 
         }
       }
       
@@ -230,14 +231,11 @@ print(clean_data)
     if(input$extract.title){
       patient_notes = "" 
       
-      # read in notes for each file, and take one file that has the notes
-      # (takes the last file that has notes included)
       for(i in 1:length(input$files$name)){
-        quart_report = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
-        temp = extract_patientNotes(quart_report)
-        
-        if(patient_notes == ""){
-          patient_notes = temp
+        if(grepl("header", input$files$name[[i]], ignore.case = TRUE)){ #if this is the header file 
+          header_df = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
+          patient_notes = extract_patientNotes(header_df)
+          break 
         }
       }
       
@@ -268,6 +266,8 @@ that  had a medical visit during the 12 months prior to the end of the reporting
     }
   })
 
+  ax.rate = reactive(paste(report_type(), "Rate (%)"))
+  
   #######################################
 
   # OUTPUTS
@@ -335,7 +335,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       #annotate("text", x = annotation$date + months(1), y = annotation$rate, label = "  ", size = 10)+   # annotation for avg. rate
       theme_bw()+
       guides(size = FALSE, color = FALSE)+   # don't include legend for size of dots
-      labs(x = ax.date, y = ax.rate, color = ax.location)+
+      labs(x = ax.date, y = ax.rate(), color = ax.location)+
       ggtitle(paste("PCHS", report_type(), "Rates"))+
       plot_options+
       scale_x_date(#date_breaks = "3 months",

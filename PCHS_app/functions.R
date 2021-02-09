@@ -16,11 +16,11 @@ extract_date = function(file_name){
 # IMPORTANT: to extract report title, first cell of file must say "Report type" 
 # inputs: raw quarterly report  
 # output: name extracted from dataframe - empty string if no name is detected 
-extract_reportTitle = function(quarterly_report){
+extract_reportTitle = function(header_df){
     report_title = ""
     
-    if(quarterly_report[1,1] == "Report type"){
-        report_title = quarterly_report[1,2]
+    if(header_df[1,1] == "Report type"){
+        report_title = header_df[1,2]
     }
     
     return(report_title)
@@ -30,14 +30,14 @@ extract_reportTitle = function(quarterly_report){
 # IMPORTANT: to extract notes, second cell of file (A2) must say "Notes" 
 # inputs: raw quarterly report 
 # output: name extracted from dataframe - empty string if no name is detected 
-extract_patientNotes = function(quarterly_report){
+extract_patientNotes = function(header_df){
     patient_notes = ""
     
-    if(!is.na(quarterly_report[2,1]) && quarterly_report[2,1] == "Notes"){
+    if(!is.na(header_df[2,1]) && header_df[2,1] == "Notes"){
         i = 2
         
-        while(!is.na(quarterly_report[i,2])){
-            patient_notes = paste(patient_notes,quarterly_report[i,2], sep = "\n")
+        while(!is.na(header_df[i,2])){
+            patient_notes = paste(patient_notes,header_df[i,2], sep = "\n")
             i = i + 1
         }
         

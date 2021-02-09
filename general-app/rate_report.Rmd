@@ -35,7 +35,7 @@ library(colorspace)
 
 # setting up axes for plots - note: titles of plots based on params$report.type
  ax.date = expression(atop(bold("Date"), "   "))
- ax.rate = expression(atop("   ", bold("Rate (%)")))
+ ax.rate= paste(params$report.type, "Rate (%)")
  ax.patients = "Number of Patients"
  ax.location = "Site"
  
