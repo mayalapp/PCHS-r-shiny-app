@@ -129,7 +129,7 @@ server = function(input, output){
   create_rate_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
     loc_data = df %>%filter(location == loc)
     
-    p = loc_data %>% 
+    p = loc_data %>%
       ggplot(aes(x = date, y = rate))
     
     # if we're using cancer screening, add a line showing what date PCHS changed how they measure screening rate
@@ -380,7 +380,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       summarize(rate_range = max(rate)- min(rate),   # find ranges of screening rates for each location
                 middle_rate = min(rate) + 0.5 * rate_range)    # find middle between max and min screening rate for each locaiton
     max_range = temp_data%>%filter(rate_range == max(rate_range)) # calculate max range
-    max_range = max_range$rate_range                              # isolate max range as a number
+    max_range = round(max_range$rate_range, 3) + 0.001            # isolate max range as a number, then round and add a little to make sure all data is in range for the site with the maximum range
 
     # make variable for barplot y max
     y_ranges = temp_data%>%mutate(ymin = middle_rate - 0.5 * max_range, ymax = middle_rate + 0.5 * max_range)  # create new ranges for y axes
