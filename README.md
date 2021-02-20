@@ -28,6 +28,7 @@ Notes on extending the app to other usages:
 Important formatting notes: 
 - Files should be xlsx files named using the format `"MM-DD-YY xxxxxxxx.xlsx"` where `MM-DD-YY` is the date of the current report. 
 - Follow the format of the `MM-DD-YY report_template.xlsx` file as closely as possible to ensure the app does not fail. 
+- Make sure the data is in the **first sheet** in the excel file. 
 - The words "Item" and "Location" should not be used anywhere except to note the rows where the type of data and the site names are indicated, respectively
 - Multiple quarters in a single file
     - Some example files have data from multiple quarters in a single file. We recommend avoiding this when possible. 
@@ -41,3 +42,7 @@ If a datafile gets currupted (will not load on the app), try copying the informa
 ## Notes about header files 
 
 Header files can be used to create report/plot titles as well as include notes about patients/CQMs. A template for the header file is given in  `quarterlyReports/header_file_template.xlsx`. The header file name must contain the word "header" in it. 
+
+Make sure the header information is in the **first sheet** in the excel file. 
+
+
