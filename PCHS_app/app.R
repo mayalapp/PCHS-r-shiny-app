@@ -274,7 +274,7 @@ that  had a medical visit during the 12 months prior to the end of the reporting
   # OUTPUTS
   #------------------------------
 
- 
+
 observeEvent(input$run, {   # create run button to plot graphs
  
   # Create report title and notes 
@@ -419,7 +419,7 @@ observeEvent(input$run, {   # create run button to plot graphs
 
 
 
- }) # isolate end
+ }) # observeEvent end
 
   
   #######################################
