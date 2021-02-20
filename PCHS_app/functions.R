@@ -37,7 +37,7 @@ extract_patientNotes = function(header_df){
         i = 2
         
         while(!is.na(header_df[i,2])){
-            patient_notes = paste(patient_notes,header_df[i,2], sep = "\n")
+            patient_notes = paste(patient_notes,header_df[i,2], " ", sep = "\n")
             i = i + 1
         }
         
