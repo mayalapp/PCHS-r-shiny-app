@@ -301,14 +301,14 @@ observeEvent(input$run, {   # create run button to plot graphs
       labs(x = ax.date, y = ax.rate(), color = ax.location)+
       ggtitle(paste(report_type(), "Rates"))+
       plot_options+
-      scale_x_date(#date_breaks = "3 months",
-                   date_labels = "%b %Y",
-                   #labels=date_format("%b-%Y"),
-                   #limits = c(date_summary$min_date,date_summary$max_date + weeks(6)))+ #extend xlim so labels aren't cut off
-                  limits = c(date_summary$min_date,date_summary$max_date + months(2)))+ #extend xlim so labels aren't cut off
-     geom_dl(aes(label = location), method = list(dl.trans(x = x + .3), "last.qp", cex = 1.2, fontface = "bold")) +
+      scale_x_date(date_labels = "%b %Y")+#,
+      #limits = c(date_summary$min_date,date_summary$max_date + weeks(6)))+ #extend xlim so labels aren't cut off
+      #limits = c(date_summary$min_date,date_summary$max_date + months(params$label.months)))+ #extend xlim so labels aren't cut off
+      geom_dl(aes(label = location), method = list(dl.trans(x = x + 1.1), "last.bumpup", cex = 1.2, fontface = "bold")) +
       #scale_color_brewer(palette = "Set3")
-      scale_color_manual(values = plot_colors)
+      scale_color_manual(values = plot_colors)+
+      coord_cartesian(clip = "off")+
+      theme(plot.margin = unit(c(0,3.5,0,1), "cm"))
       #geom_dl(aes(label = location), method = list(dl.combine("last.points")), cex = 0.8)
 
     #%>%direct.label("last.qp")
