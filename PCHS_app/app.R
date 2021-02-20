@@ -27,7 +27,8 @@ source("functions.R")
 ui = fluidPage(
 
   verticalLayout(
-
+    titlePanel(textOutput(outputId = "app.title")),
+    
     # get user inputs
   wellPanel(
     
@@ -88,6 +89,11 @@ ui = fluidPage(
 #--------------------
 
 server = function(input, output){
+  
+  output$app.title = renderText({ 
+    paste(" PCHS CQM Visualizer App")
+  })
+  
   #--------------------
   # SETTING UP PLOTS
   #--------------------
