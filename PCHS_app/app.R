@@ -39,7 +39,7 @@ ui = fluidPage(
     
     # dropdown with different cancer screening options. starts on blank. 
     # affects notes on which patients are used, report title, and graph titles
-      selectInput(inputId = "report.type", label = "Choose report type (if not extracting from quarterly report)",
+      selectInput(inputId = "report.type", label = "Choose report type (if not extracting from header file)",
                         choices = c("","Colorectal Cancer Screening", "Mammogram Screening", "Cervical Cancer Screening")),
 
       # select files needed for report
