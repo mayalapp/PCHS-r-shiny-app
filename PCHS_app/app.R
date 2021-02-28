@@ -1,6 +1,13 @@
 #https://shiny.rstudio.com/tutorial/
 # PCHS app
 
+# Notes: 
+# To run app in R: click on "Run App" 
+# To publish the app to the internet - click on blue icon next to "Run App" in upper righthand corner
+#     You can create a new URL for the new version if you want to 
+# Reactive variables must be called using parenthesis: 
+#  Example: reactive_variable <- reactive({print(input$myName)})
+#  To call the variable use:    reactive_variable()
 
 # load required libraries
 library(shiny)
@@ -115,7 +122,6 @@ server = function(input, output){
       }
     })
 
-
     # set plot options for all plots to abide by
     plot_options = theme(axis.text=element_text(size=14),
                          axis.title=element_text(size=16,face="bold"),
@@ -207,6 +213,8 @@ print(clean_data)
    clean_data
   }
   )
+  
+  # STOPED EXPLAINING TO DAD
   
   
   # get report type - either from input or from the quarterly report files 
