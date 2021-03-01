@@ -5,6 +5,7 @@
 # To run app in R: click on "Run App" 
 # To publish the app to the internet - click on blue icon next to "Run App" in upper righthand corner
 #     You can create a new URL for the new version if you want to 
+
 # Reactive variables must be called using parenthesis: 
 #  Example: reactive_variable <- reactive({print(input$myName)})
 #  To call the variable use:    reactive_variable()
@@ -130,8 +131,8 @@ server = function(input, output){
                          legend.title = element_text(size=16, face = "bold"))
 
     combined_plot_width = 1250
-    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
-
+    #plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
+    
   # creates rate line plot for a specific location
   # inputs:
   #      df - dataframe with full cleaned data (including all locations)
@@ -214,7 +215,19 @@ print(clean_data)
   }
   )
   
-  # STOPED EXPLAINING TO DAD
+  # STOPPED EXPLAINING TO DAD
+  
+  
+  plot_colors = reactive({
+    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#F4A582" , '#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', 'darkgreen', 'darkmagenta'))
+    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186"))
+    nLocations = length(unique(data()$location))
+    if(nLocations > length(plot_colors)){
+      plot_colors = c("#000000", rep("grey", times = nLocations))
+    }
+    
+    paste(plot_colors)
+    })
   
   
   # get report type - either from input or from the quarterly report files 
@@ -230,6 +243,7 @@ print(clean_data)
           report_type = extract_reportTitle(header_df)
           break 
         }
+        #warning("No header file found")
       }
       
       paste(report_type)
@@ -358,7 +372,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       #limits = c(date_summary$min_date,date_summary$max_date + months(params$label.months)))+ #extend xlim so labels aren't cut off
       geom_dl(aes(label = location), method = list(dl.trans(x = x + 1.1), "last.bumpup", cex = 1.2, fontface = "bold")) +
       #scale_color_brewer(palette = "Set3")
-      scale_color_manual(values = plot_colors)+
+      scale_color_manual(values = plot_colors())+
       coord_cartesian(clip = "off")+
       theme(plot.margin = unit(c(0,3.5,0,1), "cm"))
       #geom_dl(aes(label = location), method = list(dl.combine("last.points")), cex = 0.8)
@@ -410,9 +424,9 @@ observeEvent(input$run, {   # create run button to plot graphs
       location_i = data()$location[i]                   # get name of ith location
 
       # create all patient bar graph
-      p1 = create_patient_barplot(data(), location_i, max_patients, plot_colors[i+1])
+      p1 = create_patient_barplot(data(), location_i, max_patients, plot_colors()[i+1])
       #create screening rate line plots
-      p2 = create_rate_plot(data(), location_i, y_ranges$ymin[i], y_ranges$ymax[i], plot_colors[i+1])
+      p2 = create_rate_plot(data(), location_i, y_ranges$ymin[i], y_ranges$ymax[i], plot_colors()[i+1])
 
       # save the plots in a list
       p3[[i]] = p1
