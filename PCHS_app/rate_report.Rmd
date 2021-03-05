@@ -16,12 +16,12 @@ classoption: landscape
 
 
 ```{r parameterizedRmarkdownCode, eval = FALSE, include = FALSE}
-#used to run rmarkdown with parameters 
-rmarkdown::render("cancer_report.Rmd", params = list(
-  report.type = "Colorectal Cancer Screening",
-  rate.data = clean_data,  
-  label.months = 3
-))
+#used to run rmarkdown with parameters - doesn't do anything for the report 
+#rmarkdown::render("cancer_report.Rmd", params = list(
+#  report.type = "Colorectal Cancer Screening",
+#  rate.data = clean_data,  
+#  label.months = 3
+#))
 ```
 
 ```{r setup, include = FALSE}
@@ -59,7 +59,19 @@ library(colorspace)
                       legend.title = element_text(size=14, face = "bold"))
 
 margin_val = 2.5
-plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
+#plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
+
+    # Colors to use if there are <= 33 locations (not including All)
+    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", 
+                           "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#F4A582" , '#e6194B', 
+                           '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', 
+                           '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', 
+                           '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', 
+                           '#a9a9a9', 'darkgreen', 'darkmagenta'))
+    nLocations = length(unique(params$rate.data$location)) # calculates number of locations 
+    if(nLocations > length(plot_colors)){ # if there are more locations than colors 
+      plot_colors = c("#000000", rep("grey", times = nLocations)) # make all locations grey (except "All", which is still black) 
+    }
 
 ```
 
@@ -124,6 +136,7 @@ create_patient_barplot = function(df, loc, ymax,  mycolor = "grey"){
 `r params$patient.notes` 
 
 ```{r, echo = FALSE, fig.height=1}
+# add white space 
 ggplot(data = NULL)+ theme_void()
 ```
 

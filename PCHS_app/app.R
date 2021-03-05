@@ -215,19 +215,25 @@ print(clean_data)
   }
   )
   
-  # STOPPED EXPLAINING TO DAD
-  
-  
+  # set plot colors 
   plot_colors = reactive({
-    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#F4A582" , '#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', 'darkgreen', 'darkmagenta'))
-    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186"))
-    nLocations = length(unique(data()$location))
-    if(nLocations > length(plot_colors)){
-      plot_colors = c("#000000", rep("grey", times = nLocations))
+    # Colors to use if there are <= 33 locations (not including All)
+    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", 
+                           "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#F4A582" , '#e6194B', 
+                           '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', 
+                           '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', 
+                           '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', 
+                           '#a9a9a9', 'darkgreen', 'darkmagenta'))
+    nLocations = length(unique(data()$location)) # calculates number of locations 
+    if(nLocations > length(plot_colors)){ # if there are more locations than colors 
+      plot_colors = c("#000000", rep("grey", times = nLocations)) # make all locations grey (except "All", which is still black) 
     }
     
     paste(plot_colors)
     })
+  
+  
+  # STOPPED EXPLAINING TO DAD
   
   
   # get report type - either from input or from the quarterly report files 
@@ -407,8 +413,8 @@ observeEvent(input$run, {   # create run button to plot graphs
     temp_data = data()%>%filter(location!="All")%>%group_by(location)%>%
       summarize(rate_range = max(rate)- min(rate),   # find ranges of screening rates for each location
                 middle_rate = min(rate) + 0.5 * rate_range)    # find middle between max and min screening rate for each locaiton
-    max_range = temp_data%>%filter(rate_range == max(rate_range)) # calculate max range
-    max_range = round(max_range$rate_range, 3) + 0.001            # isolate max range as a number, then round and add a little to make sure all data is in range for the site with the maximum range
+    max_range = temp_data%>%filter(rate_range == max(rate_range)) # calculate max range 
+    max_range = round(max_range$rate_range[1], 3) + 0.001            # isolate max range as a number, then round and add a little to make sure all data is in range for the site with the maximum range
 
     # make variable for barplot y max
     y_ranges = temp_data%>%mutate(ymin = middle_rate - 0.5 * max_range, ymax = middle_rate + 0.5 * max_range)  # create new ranges for y axes
