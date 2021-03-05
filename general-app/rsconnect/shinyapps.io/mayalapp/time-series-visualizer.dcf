@@ -5,8 +5,8 @@ account: mayalapp
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3515251
-bundleId: 4240583
+bundleId: 4249968
 url: https://mayalapp.shinyapps.io/time-series-visualizer/
-when: 1613650339.66025
+when: 1613862108.52113
 asMultiple: FALSE
 asStatic: FALSE

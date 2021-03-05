@@ -1,6 +1,14 @@
 #https://shiny.rstudio.com/tutorial/
 # PCHS app
 
+# Notes: 
+# To run app in R: click on "Run App" 
+# To publish the app to the internet - click on blue icon next to "Run App" in upper righthand corner
+#     You can create a new URL for the new version if you want to 
+
+# Reactive variables must be called using parenthesis: 
+#  Example: reactive_variable <- reactive({print(input$myName)})
+#  To call the variable use:    reactive_variable()
 
 # load required libraries
 library(shiny)
@@ -115,7 +123,6 @@ server = function(input, output){
       }
     })
 
-
     # set plot options for all plots to abide by
     plot_options = theme(axis.text=element_text(size=14),
                          axis.title=element_text(size=16,face="bold"),
@@ -124,8 +131,8 @@ server = function(input, output){
                          legend.title = element_text(size=16, face = "bold"))
 
     combined_plot_width = 1250
-    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
-
+    #plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
+    
   # creates rate line plot for a specific location
   # inputs:
   #      df - dataframe with full cleaned data (including all locations)
@@ -208,6 +215,26 @@ print(clean_data)
   }
   )
   
+  # set plot colors 
+  plot_colors = reactive({
+    # Colors to use if there are <= 33 locations (not including All)
+    plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", 
+                           "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#F4A582" , '#e6194B', 
+                           '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', 
+                           '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', 
+                           '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', 
+                           '#a9a9a9', 'darkgreen', 'darkmagenta'))
+    nLocations = length(unique(data()$location)) # calculates number of locations 
+    if(nLocations > length(plot_colors)){ # if there are more locations than colors 
+      plot_colors = c("#000000", rep("grey", times = nLocations)) # make all locations grey (except "All", which is still black) 
+    }
+    
+    paste(plot_colors)
+    })
+  
+  
+  # STOPPED EXPLAINING TO DAD
+  
   
   # get report type - either from input or from the quarterly report files 
   report_type = reactive({
@@ -222,6 +249,7 @@ print(clean_data)
           report_type = extract_reportTitle(header_df)
           break 
         }
+        #warning("No header file found")
       }
       
       paste(report_type)
@@ -350,7 +378,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       #limits = c(date_summary$min_date,date_summary$max_date + months(params$label.months)))+ #extend xlim so labels aren't cut off
       geom_dl(aes(label = location), method = list(dl.trans(x = x + 1.1), "last.bumpup", cex = 1.2, fontface = "bold")) +
       #scale_color_brewer(palette = "Set3")
-      scale_color_manual(values = plot_colors)+
+      scale_color_manual(values = plot_colors())+
       coord_cartesian(clip = "off")+
       theme(plot.margin = unit(c(0,3.5,0,1), "cm"))
       #geom_dl(aes(label = location), method = list(dl.combine("last.points")), cex = 0.8)
@@ -385,8 +413,8 @@ observeEvent(input$run, {   # create run button to plot graphs
     temp_data = data()%>%filter(location!="All")%>%group_by(location)%>%
       summarize(rate_range = max(rate)- min(rate),   # find ranges of screening rates for each location
                 middle_rate = min(rate) + 0.5 * rate_range)    # find middle between max and min screening rate for each locaiton
-    max_range = temp_data%>%filter(rate_range == max(rate_range)) # calculate max range
-    max_range = round(max_range$rate_range, 3) + 0.001            # isolate max range as a number, then round and add a little to make sure all data is in range for the site with the maximum range
+    max_range = temp_data%>%filter(rate_range == max(rate_range)) # calculate max range 
+    max_range = round(max_range$rate_range[1], 3) + 0.001            # isolate max range as a number, then round and add a little to make sure all data is in range for the site with the maximum range
 
     # make variable for barplot y max
     y_ranges = temp_data%>%mutate(ymin = middle_rate - 0.5 * max_range, ymax = middle_rate + 0.5 * max_range)  # create new ranges for y axes
@@ -402,9 +430,9 @@ observeEvent(input$run, {   # create run button to plot graphs
       location_i = data()$location[i]                   # get name of ith location
 
       # create all patient bar graph
-      p1 = create_patient_barplot(data(), location_i, max_patients, plot_colors[i+1])
+      p1 = create_patient_barplot(data(), location_i, max_patients, plot_colors()[i+1])
       #create screening rate line plots
-      p2 = create_rate_plot(data(), location_i, y_ranges$ymin[i], y_ranges$ymax[i], plot_colors[i+1])
+      p2 = create_rate_plot(data(), location_i, y_ranges$ymin[i], y_ranges$ymax[i], plot_colors()[i+1])
 
       # save the plots in a list
       p3[[i]] = p1
