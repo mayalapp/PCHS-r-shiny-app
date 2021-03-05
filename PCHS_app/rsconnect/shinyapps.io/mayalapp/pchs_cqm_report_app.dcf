@@ -5,9 +5,8 @@ account: mayalapp
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3570186
-bundleId: 4240594
+bundleId: 4305947
 url: https://mayalapp.shinyapps.io/pchs_cqm_report_app/
-when: 1613650548.02418
+when: 1614967479.63922
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: testPlot.RData
