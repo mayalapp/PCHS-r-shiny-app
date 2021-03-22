@@ -1,6 +1,6 @@
 
 
-# gets date for the report
+# gets date for the report from the name of the file 
 # IMPORTANT: bases date off of file name of the report NOT the dates actually in the file
 # inputs: file_name - file name of the report. should be of the form "MM-DD-YY PCHS xxxxx Rate.xlsx"
 # output: date for this quarterly report
@@ -12,8 +12,8 @@ extract_date = function(file_name){
 }
 
 
-# gets title for the report
-# IMPORTANT: to extract report title, first cell of file must say "Report type" 
+# gets title for the report from header file 
+# IMPORTANT: to extract report title, first cell of header file must say "Report type"  
 # inputs: raw quarterly report  
 # output: name extracted from dataframe - empty string if no name is detected 
 extract_reportTitle = function(header_df){
@@ -27,7 +27,7 @@ extract_reportTitle = function(header_df){
 }
 
 # gets notes about patients 
-# IMPORTANT: to extract notes, second cell of file (A2) must say "Notes" 
+# IMPORTANT: to extract notes, second cell of header file (A2) must say "Notes" 
 # inputs: raw quarterly report 
 # output: name extracted from dataframe - empty string if no name is detected 
 extract_patientNotes = function(header_df){

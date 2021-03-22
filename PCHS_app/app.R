@@ -6,9 +6,15 @@
 # To publish the app to the internet - click on blue icon next to "Run App" in upper righthand corner
 #     You can create a new URL for the new version if you want to 
 
-# Reactive variables must be called using parenthesis: 
+# Reactive variables must be called using parenthesis - in the app file: 
 #  Example: reactive_variable <- reactive({print(input$myName)})
 #  To call the variable use:    reactive_variable()
+
+# InputId and OutputId connect the user interface to the server (background code)
+
+# Anywhere "location" appears could be "provider", etc. 
+
+# If you change something about the plots, change it first in the app and then in the rate_report.Rmd file (see example in rate_report.Rmd file)
 
 # load required libraries
 library(shiny)
@@ -215,6 +221,8 @@ print(clean_data)
   }
   )
   
+  nLocations = reactive(length(unique(data()$location))) 
+  
   # set plot colors 
   plot_colors = reactive({
     # Colors to use if there are <= 33 locations (not including All)
@@ -226,14 +234,11 @@ print(clean_data)
                            '#a9a9a9', 'darkgreen', 'darkmagenta'))
     nLocations = length(unique(data()$location)) # calculates number of locations 
     if(nLocations > length(plot_colors)){ # if there are more locations than colors 
-      plot_colors = c("#000000", rep("grey", times = nLocations)) # make all locations grey (except "All", which is still black) 
+      plot_colors = c("#000000", rep("grey", times = nLocations())) # make all locations grey (except "All", which is still black) 
     }
     
     paste(plot_colors)
     })
-  
-  
-  # STOPPED EXPLAINING TO DAD
   
   
   # get report type - either from input or from the quarterly report files 
@@ -301,7 +306,7 @@ that  had a medical visit during the 12 months prior to the end of the reporting
     }
   })
 
-  ax.rate = reactive(paste(report_type(), "Rate (%)"))
+  ax.rate = reactive(paste(report_type(), "Rate (%)")) # set y axis for rate line plot 
   
   #######################################
 
@@ -330,12 +335,13 @@ observeEvent(input$run, {   # create run button to plot graphs
   #------------------------------
   output$text.PCHS = renderText("Graphs for all PCHS sites")
 
-   # output single line plot for rates of all locations together
+   # output line plot and bar plot for rates of all locations together
    output$plot.allLocationsSummary = renderPlot({
      
 
     date_summary = data()%>%summarize(min_date = min(date), max_date = max(date))   # determine first and last dates plotted
 
+    # p1[[1]] save the bar plot object 
     p1 = list()
     p1[[1]] = data()%>%filter(location == "All")%>%
       ggplot(aes(x = date, y = all_patients))+
@@ -346,10 +352,10 @@ observeEvent(input$run, {   # create run button to plot graphs
       plot_options+
       scale_x_date(date_labels = "%b %Y")
 
-    # create plot
+    # p1[[2]] saves the line plot object 
     p1[[2]] = data()%>%
-      # anonamize sites using this 
-      #mutate(loc2 = ifelse(location == "All", "All sites", paste("Site", as.numeric(location) - 1, sep = " "))) %>%
+      # anonamize sites/providers/etc. using this  # maya TODO: check anonamyzation 
+      # mutate(loc2 = ifelse(location == "All", "All sites", paste("Site", as.numeric(location) - 1, sep = " "))) %>%
       ggplot(aes(x = date, y = rate, color = location))
     
     # if we're using cancer screening, add a line showing what date PCHS changed how they measure screening rate
@@ -392,7 +398,7 @@ observeEvent(input$run, {   # create run button to plot graphs
     # grid.arrange(grobs = lapply(p1, "+", margin), nrow = 1, widths = c(1.5,2))  # output plot
     grid.arrange(grobs = p1, nrow = 1, widths = c(1.5,2))  # output plot
 
-    }, height = 500, width = combined_plot_width)
+    }, height = 500, width = combined_plot_width) # combined_plot_width is defined above
 
 
    #######################################
@@ -420,12 +426,11 @@ observeEvent(input$run, {   # create run button to plot graphs
     y_ranges = temp_data%>%mutate(ymin = middle_rate - 0.5 * max_range, ymax = middle_rate + 0.5 * max_range)  # create new ranges for y axes
 
 
-    nLocations = length(unique(data()$location))    # get number of locations in dataset
     p3 = list()   # initialize list of all patients bar graph
     p4 = list()# initialize list of screening line plot
 
     # for each location, create both plots
-    for( i in 1:(nLocations-1)){
+    for( i in 1:(nLocations()-1)){
 
       location_i = data()$location[i]                   # get name of ith location
 
@@ -443,14 +448,14 @@ observeEvent(input$run, {   # create run button to plot graphs
     plts = rbind(p3, p4)
 
     # add margin of white space between plots
-    margin = theme(plot.margin = unit(rep(1, times = nLocations), "cm"))
+    margin = theme(plot.margin = unit(rep(1, times = nLocations()), "cm"))
 
     # arrange plots into one output
-    grid.arrange(grobs = lapply(plts, "+", margin), widths = c(1.5, 2), heights = 4*rep(1, times = nLocations))
+    grid.arrange(grobs = lapply(plts, "+", margin), widths = c(1.5, 2), heights = 4*rep(1, times = nLocations()))
 
 
-  }, height = 4100, width = combined_plot_width) # make plots output nice and big
-
+  }, height = nLocations() * 460 , width = combined_plot_width) # make plots output nice and big # Maya TODO: make height based on # locations
+# Maya TODO: pdf for each provider? 
 
 
  }) # observeEvent end
@@ -477,6 +482,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       # Set up parameters to pass to Rmd document
       params <- list(report.type = report_type(), rate.data = data(), patient.notes = patient_notes())
 
+      # this grabs the rate_report.Rmd markdown file and knits it to a pdf giving it the parameters "params"
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document
       # from the code in this app).

@@ -13,7 +13,34 @@ classoption: landscape
 
 ---
 
+```{r notesAboutCode, eval = FALSE, include = FALSE}
+# Notes on copying from app.R to rate_report.Rmd (for pdf report)
 
+# EXAMPLE: 
+# Change in app
+p1 = data()%>%filter(location == "All")%>%   
+      ggplot(aes(x = date, y = all_patients))+
+      geom_bar(stat = "identity")+
+      theme_bw()+
+      labs(x = ax.date, y = ax.patients)+
+      ggtitle(paste("PCHS", title.patients()))+
+      plot_options+
+      scale_x_date(date_labels = "%b %Y")
+
+
+# Same change in Rmarkdown: copy and paste EXCEPT for: 
+p1= params$rate.data%>%filter(location == "All")%>%   # data()  will now be params$rate.data  - data() was assigned to the rate.data parameter 
+      ggplot(aes(x = date, y = all_patients))+
+      geom_bar(stat = "identity")+
+      theme_bw()+
+      labs(x = ax.date, y = ax.patients)+
+      ggtitle(paste("PCHS", title.patients))+  # removed parenthesis from title.patients - no reactive variables in Rmarkdown 
+      plot_options+ 
+      scale_x_date(date_labels = "%b %Y")
+
+
+
+```
 
 ```{r parameterizedRmarkdownCode, eval = FALSE, include = FALSE}
 #used to run rmarkdown with parameters - doesn't do anything for the report 
@@ -25,6 +52,8 @@ classoption: landscape
 ```
 
 ```{r setup, include = FALSE}
+# all plot options 
+
 knitr::opts_chunk$set(echo = TRUE, fig.show="hold", out.width="50%", message = FALSE, warning = FALSE)
 library(shiny)
 library(tidyverse)
