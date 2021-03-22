@@ -1,7 +1,7 @@
 #https://shiny.rstudio.com/tutorial/
 # PCHS app
 
-# Notes: 
+# Notes for PCHS users: 
 # To run app in R: click on "Run App" 
 # To publish the app to the internet - click on blue icon next to "Run App" in upper righthand corner
 #     You can create a new URL for the new version if you want to 
@@ -135,6 +135,8 @@ server = function(input, output){
                          legend.title = element_text(size=16, face = "bold"))
 
     combined_plot_width = 1250
+    
+    # old plot colors - not used 
     #plot_colors = darken(c("#000000", "#80CDC1", "#B8E186", "#9fb88c", "#92C5DE", "#DFC27D", "#FDB863",  "#EA9999", "#7686c4", "#D5A6BD", "#A2C4C9", "#D5A6BD", "#F4A582"))
     
   # creates rate line plot for a specific location
@@ -237,8 +239,8 @@ print(clean_data)
                            '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', 
                            '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', 
                            '#a9a9a9', 'darkgreen', 'darkmagenta'))
-    nLocations = length(unique(data()$location)) # calculates number of locations 
-    if(nLocations > length(plot_colors)){ # if there are more locations than colors 
+
+    if(nLocations() > length(plot_colors)){ # if there are more locations than colors 
       plot_colors = c("#000000", rep("grey", times = nLocations())) # make all locations grey (except "All", which is still black) 
     }
     
@@ -395,7 +397,7 @@ observeEvent(input$run, {   # create run button to plot graphs
 
     #%>%direct.label("last.qp")
 
-    #Levels: All Alma Illery Braddock CHC East End Hazelwood Hill House McKeesport Steel Valley West End Wilkinsburg
+    #Levels (for current sites): All Alma Illery Braddock CHC East End Hazelwood Hill House McKeesport Steel Valley West End Wilkinsburg
 
     # # margin of white space between plots
     # margin = theme(plot.margin = unit(rep(1, times = 2), "cm"))

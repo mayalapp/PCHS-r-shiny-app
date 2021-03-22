@@ -31,20 +31,6 @@ ui = fluidPage(
     # get user inputs
   wellPanel(
     
-    # used before to allow users to type in report titles/notes 
-    
-    # # if this is checked, extract the title name and notes from the data file 
-    # checkboxInput(inputId = "extract.title", label = "Check here to extract report title and notes from header file", value = FALSE), 
-    # 
-    # # takes text input for report type
-    # # used for report title and graph titles
-    # textInput(inputId = "report.type", label = "Type in report type here:", value = "") , 
-    # 
-    # # takes text input for notes on data/report/etc
-    # # used for report title and graph titles
-    # textInput(inputId = "notes", 
-    #           label = "Describe any important notes about data, report, etc. (e.g. what patients are included in the report)", 
-    #           value = "") , 
    
       # select files needed for report
       fileInput(inputId = "files",
@@ -52,10 +38,9 @@ ui = fluidPage(
                 Also include a header file, if desired. Header file should be named \"header xxxxxxx.xlsx\". ",
                 multiple = TRUE, accept = c(".xlsx")),
 
-      # edit this if labels start getting cut off - makes weird behavior happen right now
-      #sliderInput(inputId = "label.months", min = 0, max = 12, value = 2,
-                  #label = "Increase this value to add room for plot labels. Decrease this value to decrease room for plot labels. "),
-
+      # option to anonymize locations/providers/etc 
+      checkboxInput(inputId = "anonymize", label = "Anonymize plot outputs", value = FALSE), 
+      
       # button to generate plots
       actionButton(inputId = "run", "Create plots"),
       # button to download pdf report
@@ -190,9 +175,20 @@ print(clean_data)
    # relevel so "All" is first level
    clean_data$location <- relevel(clean_data$location, "All")
 
+   
+   # to anonymize the data 
+   if(input$anonymize){
+     # maya todo: instead of "site", what is better?
+     clean_data = clean_data%>%mutate(location = ifelse(location == "All", "All", paste("Site", as.numeric(location) - 1, sep = " ")))
+   }
+   
+   
    clean_data
   }
   )
+  
+  nLocations = reactive(length(unique(data()$location))) 
+  
   
   # set plot colors 
   plot_colors = reactive({
@@ -203,9 +199,8 @@ print(clean_data)
                            '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', 
                            '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', 
                            '#a9a9a9', 'darkgreen', 'darkmagenta'))
-    nLocations = length(unique(data()$location)) # calculates number of locations 
-    if(nLocations > length(plot_colors)){ # if there are more locations than colors 
-      plot_colors = c("#000000", rep("grey", times = nLocations)) # make all locations grey (except "All", which is still black) 
+    if(nLocations() > length(plot_colors)){ # if there are more locations than colors 
+      plot_colors = c("#000000", rep("grey", times = nLocations())) # make all locations grey (except "All", which is still black) 
     }
     
     paste(plot_colors)
@@ -365,12 +360,11 @@ observeEvent(input$run, {   # create run button to plot graphs
     y_ranges = temp_data%>%mutate(ymin = middle_rate - 0.5 * max_range, ymax = middle_rate + 0.5 * max_range)  # create new ranges for y axes
 
 
-    nLocations = length(unique(data()$location))    # get number of locations in dataset
     p3 = list()   # initialize list of all patients bar graph
     p4 = list()# initialize list of line plot
 
     # for each location, create both plots
-    for( i in 1:(nLocations-1)){
+    for( i in 1:(nLocations()-1)){
 
       location_i = data()$location[i]                   # get name of ith location
 
@@ -388,13 +382,13 @@ observeEvent(input$run, {   # create run button to plot graphs
     plts = rbind(p3, p4)
 
     # add margin of white space between plots
-    margin = theme(plot.margin = unit(rep(1, times = nLocations), "cm"))
+    margin = theme(plot.margin = unit(rep(1, times = nLocations()), "cm"))
 
     # arrange plots into one output
-    grid.arrange(grobs = lapply(plts, "+", margin), widths = c(1.5, 2), heights = 4*rep(1, times = nLocations))
+    grid.arrange(grobs = lapply(plts, "+", margin), widths = c(1.5, 2), heights = 4*rep(1, times = nLocations()))
 
 
-  }, height = 4100, width = combined_plot_width) # make plots output nice and big
+  }, height =  nLocations() * 460 , width = combined_plot_width) # make plots output nice and big
 
 
 
