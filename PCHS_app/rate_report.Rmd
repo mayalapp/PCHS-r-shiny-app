@@ -42,15 +42,6 @@ p1= params$rate.data%>%filter(location == "All")%>%   # data()  will now be para
 
 ```
 
-```{r parameterizedRmarkdownCode, eval = FALSE, include = FALSE}
-#used to run rmarkdown with parameters - doesn't do anything for the report 
-#rmarkdown::render("cancer_report.Rmd", params = list(
-#  report.type = "Colorectal Cancer Screening",
-#  rate.data = clean_data,  
-#  label.months = 3
-#))
-```
-
 ```{r setup, include = FALSE}
 # all plot options 
 

@@ -46,26 +46,24 @@ ui = fluidPage(
     # get user inputs
   wellPanel(
     
-    
-    # if this is checked, extract the title name and notes from the data file 
-    checkboxInput(inputId = "extract.title", label = "Check here to extract report type and notes from header file", value = FALSE), 
-    
-    
-    # dropdown with different cancer screening options. starts on blank. 
-    # affects notes on which patients are used, report title, and graph titles
-      selectInput(inputId = "report.type", label = "Choose report type (if not extracting from header file)",
-                        choices = c("","Colorectal Cancer Screening", "Mammogram Screening", "Cervical Cancer Screening")),
-
-      # select files needed for report
+            # select files needed for report
       fileInput(inputId = "files",
                 label = "Choose quarterly report xlsx files. File names should begin with the date of the quarterly report: \"MM-DD-YY xxxxxxxx.xlsx\". 
                 Also include a header file, if desired. Header file should be named \"header xxxxxxx.xlsx\". ",
                 multiple = TRUE, accept = c(".csv", ".xlsx")),
 
-      # edit this if labels start getting cut off - makes weird behavior happen right now
-      #sliderInput(inputId = "label.months", min = 0, max = 12, value = 2,
-                  #label = "Increase this value to add room for PCHS plot labels. Decrease this value to decrease room for PCHS plot labels. "),
-
+      
+      # if this is checked, extract the title name and notes from the data file 
+      checkboxInput(inputId = "extract.title", label = "Extract report type and notes from header file", value = FALSE), 
+      
+      # option to anonymize locations/providers/etc 
+      checkboxInput(inputId = "anonymize", label = "Anonymize plot outputs", value = FALSE), 
+    
+      # dropdown with different cancer screening options. starts on blank. 
+      # affects notes on which patients are used, report title, and graph titles
+      selectInput(inputId = "report.type", label = "Choose report type (if not extracting from header file)",
+                  choices = c("","Colorectal Cancer Screening", "Mammogram Screening", "Cervical Cancer Screening")),
+      
       # button to generate plots
       actionButton(inputId = "run", "Create plots"),
       # button to download pdf report
@@ -217,6 +215,13 @@ print(clean_data)
    # relevel so "All" is first level
    clean_data$location <- relevel(clean_data$location, "All")
 
+   
+   # to anonymize the data 
+   if(input$anonymize){
+     # maya todo: instead of "site", what is better?
+     clean_data = clean_data%>%mutate(location = ifelse(location == "All", "All", paste("Site", as.numeric(location) - 1, sep = " ")))
+   }
+   
    clean_data
   }
   )
@@ -353,9 +358,8 @@ observeEvent(input$run, {   # create run button to plot graphs
       scale_x_date(date_labels = "%b %Y")
 
     # p1[[2]] saves the line plot object 
+    
     p1[[2]] = data()%>%
-      # anonamize sites/providers/etc. using this  # maya TODO: check anonamyzation 
-      # mutate(loc2 = ifelse(location == "All", "All sites", paste("Site", as.numeric(location) - 1, sep = " "))) %>%
       ggplot(aes(x = date, y = rate, color = location))
     
     # if we're using cancer screening, add a line showing what date PCHS changed how they measure screening rate
@@ -454,7 +458,7 @@ observeEvent(input$run, {   # create run button to plot graphs
     grid.arrange(grobs = lapply(plts, "+", margin), widths = c(1.5, 2), heights = 4*rep(1, times = nLocations()))
 
 
-  }, height = nLocations() * 460 , width = combined_plot_width) # make plots output nice and big # Maya TODO: make height based on # locations
+  }, height = nLocations() * 460 , width = combined_plot_width) # make plots output nice and big - height is 460 per plot, combined_plot_width (defined above) for bar and line plot together
 # Maya TODO: pdf for each provider? 
 
 
