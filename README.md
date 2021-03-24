@@ -41,7 +41,7 @@ If a datafile gets currupted (will not load on the app), try copying the informa
 
 ## Notes about header files 
 
-Header files can be used to create report/plot titles as well as include notes about patients/CQMs. A template for the header file is given in  `quarterlyReports/header_file_template.xlsx`. The header file name must contain the word "header" in it. 
+Header files are used to create report/plot titles, include notes about patients/CQMs/etc, and change the group name for anonymized plots (e.g. "Site 1", "Site 2", etc.). A template for the header file is given in  `quarterlyReports/header_file_template.xlsx`. The header file name must contain the word "header" in it. 
 
 Make sure the header information is in the **first sheet** in the excel file. 
 
