@@ -53,8 +53,8 @@ ui = fluidPage(
                 multiple = TRUE, accept = c(".csv", ".xlsx")),
 
       
-      # if this is checked, extract the title name and notes from the data file 
-      checkboxInput(inputId = "extract.title", label = "Extract report type and notes from header file", value = FALSE), 
+      # if this is checked, extract the title name, notes, and/or group from the data file 
+      checkboxInput(inputId = "use.header", label = "Use header file", value = FALSE), 
       
       # option to anonymize locations/providers/etc 
       checkboxInput(inputId = "anonymize", label = "Anonymize plot outputs", value = FALSE), 
@@ -224,7 +224,7 @@ print(clean_data)
    # to anonymize the data 
    if(input$anonymize){
      # maya todo: instead of "site", what is better?
-     clean_data = clean_data%>%mutate(location = ifelse(location == "All", "All", paste("Site", as.numeric(location) - 1, sep = " ")))
+     clean_data = clean_data%>%mutate(location = ifelse(location == "All", "All", paste(grp(), as.numeric(location) - 1, sep = " ")))
    }
    
    clean_data
@@ -250,46 +250,38 @@ print(clean_data)
     paste(plot_colors)
     })
   
-  
-  # get report type - either from input or from the quarterly report files 
-  report_type = reactive({
-    # if checkbox indicates we should extract the title of the report from the quarterly report file 
-    if(input$extract.title){
-      report_type = "" 
-      
-      # read in report title from header file 
-      for(i in 1:length(input$files$name)){
-        if(grepl("header", input$files$name[[i]], ignore.case = TRUE)){ #if this is the header file 
-          header_df = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
-          report_type = extract_reportTitle(header_df)
-          break 
-        }
-        #warning("No header file found")
+  # create dataframe for header file 
+  header_df = reactive({
+    header_df = data.frame() # initialize df 
+    
+    if(input$use.header){
+    for(i in 1:length(input$files$name)){
+      if(grepl("header", input$files$name[[i]], ignore.case = TRUE)){ #if this is the header file 
+        header_df = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
+        break 
       }
-      
-      paste(report_type)
+    }
+    }
+    
+    header_df
+  })
+  
+  # get report type - either from input or header file 
+  report_type = reactive({
+    # if checkbox indicates we should extract the title of the report from the header file 
+    if(input$use.header){
+      report_type = extract_from_header(header_df(), "Report type")
     }
     else{ # otherwise, take report type from input 
       paste(input$report.type)
     }
   })
   
-  
-  # get notes - either from input or from the quarterly report files 
+  # get notes - either from input or header file 
   patient_notes = reactive({
-    # if checkbox indicates we should extract the title of the report from the quarterly report file 
-    if(input$extract.title){
-      patient_notes = "" 
-      
-      for(i in 1:length(input$files$name)){
-        if(grepl("header", input$files$name[[i]], ignore.case = TRUE)){ #if this is the header file 
-          header_df = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
-          patient_notes = extract_patientNotes(header_df)
-          break 
-        }
-      }
-      
-      paste(patient_notes)
+    # if checkbox indicates we should extract the title of the report from the header file 
+    if(input$use.header){
+      report_type = extract_from_header(header_df(), "Notes")
     }
     else{ # otherwise, take notes from input 
       if(input$report.type == "Colorectal Cancer Screening"){
@@ -315,6 +307,19 @@ that  had a medical visit during the 12 months prior to the end of the reporting
       }
     }
   })
+  
+  
+  # get group (site/provider/etc) - from header file 
+  grp = reactive({
+    grp = ""
+    
+    # if checkbox indicates we should extract the group from the header file 
+    if(input$use.header){
+      grp = extract_from_header(header_df(), "Group")
+    }
+  })
+  
+  
 
   ax.rate = reactive(paste(report_type(), "Rate (%)")) # set y axis for rate line plot 
   

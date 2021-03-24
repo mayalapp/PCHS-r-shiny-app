@@ -1,54 +1,4 @@
-
-
-# gets date for the report from the name of the file 
-# IMPORTANT: bases date off of file name of the report NOT the dates actually in the file
-# inputs: file_name - file name of the report. should be of the form "MM-DD-YY PCHS xxxxx Rate.xlsx"
-# output: date for this quarterly report
-extract_date = function(file_name){
-    temp = strsplit(file_name, split = " ")
-    date_temp_index = which(grepl("-", temp[[1]]))
-    quart_report_date = temp[[1]][date_temp_index]%>%as.Date(format = "%m-%d-%y")
-    return(quart_report_date)
-}
-
-
-# gets title for the report from header file 
-# IMPORTANT: to extract report title, first cell of header file must say "Report type"  
-# inputs: raw quarterly report  
-# output: name extracted from dataframe - empty string if no name is detected 
-extract_reportTitle = function(header_df){
-    report_title = ""
-    
-    if(header_df[1,1] == "Report type"){
-        report_title = header_df[1,2]
-    }
-    
-    return(report_title)
-}
-
-# gets notes about patients 
-# IMPORTANT: to extract notes, second cell of header file (A2) must say "Notes" 
-# inputs: raw quarterly report 
-# output: name extracted from dataframe - empty string if no name is detected 
-extract_patientNotes = function(header_df){
-    patient_notes = ""
-    
-    if(!is.na(header_df[2,1]) && header_df[2,1] == "Notes"){
-        i = 2
-        
-        while(!is.na(header_df[i,2])){
-            patient_notes = paste(patient_notes,header_df[i,2], " ", sep = "\n")
-            i = i + 1
-        }
-        
-    }
-    
-    return(patient_notes)
-}
-
-
 # finds row indices where a word is located in a df
-# IMPORTANT: don't include the word "item" in the patient notes - could mess this function up
 # inputs: df - raw df of data from we are interested in searching
 #        wrd - word we are interested in finding
 # outputs: vector of indices in quart_report which rows of df contain wrd, sorted by which index comes first
@@ -66,6 +16,45 @@ find_word_row <- function(df, wrd){
     return(sort((item_index)))
 }
 
+# gets Report type, patient notes, or group from header file 
+# inputs: 
+# header_df - raw header file dataframe 
+# x - the name of what is to be extracted (either "Report type", "Notes" or "Group") - this should appear in the first column of the header file 
+# output: extracted string of interest - empty string if "x" does not appear in the header file
+extract_from_header = function(header_df, x){
+    string_out = ""
+    
+    r = find_word_row(header_df, x)
+    
+    if(length(r == 0)){ # check to see if "x" appears anywhere in the header file 
+        
+        if(x == "Notes"){ # if extracting notes, may be multiple lines
+            i = r
+            while(i == r || (is.na(header_df[i,1]) && !is.na(header_df[i,2]))){
+                string_out = paste(string_out,header_df[i,2], " ", sep = "\n")
+                i = i + 1
+            }
+        }
+        else{
+            string_out = header_df[r,2]
+        }
+
+    }
+    return(string_out)
+}
+
+
+
+# gets date for the report from the name of the file 
+# IMPORTANT: bases date off of file name of the report NOT the dates actually in the file
+# inputs: file_name - file name of the report. should be of the form "MM-DD-YY PCHS xxxxx Rate.xlsx"
+# output: date for this quarterly report
+extract_date = function(file_name){
+    temp = strsplit(file_name, split = " ")
+    date_temp_index = which(grepl("-", temp[[1]]))
+    quart_report_date = temp[[1]][date_temp_index]%>%as.Date(format = "%m-%d-%y")
+    return(quart_report_date)
+}
 
 # extracts the rates and patient numbers from the quarterly report
 # inputs:

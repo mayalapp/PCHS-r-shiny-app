@@ -213,7 +213,7 @@ print(clean_data)
   report_type = reactive({
     # used to allow typed in responses - now just extracts directly from quarterly reports every time
     ##  if checkbox indicates we should extract the title of the report from the quarterly report file 
-    # if(input$extract.title){
+    # if(input$use.header){
       report_type = "" 
       
       # read in report title from header file 
@@ -237,7 +237,7 @@ print(clean_data)
   patient_notes = reactive({
     # used to allow typed in responses - now just extracts directly from quarterly reports every time
     # # if checkbox indicates we should extract the title of the report from the quarterly report file 
-    # if(input$extract.title){
+    # if(input$use.header){
       patient_notes = "" 
       
       # read in notes about patients used for rates 
