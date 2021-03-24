@@ -181,8 +181,7 @@ print(clean_data)
    
    # to anonymize the data 
    if(input$anonymize){
-     # maya todo: instead of "site", what is better?
-     clean_data = clean_data%>%mutate(location = ifelse(location == "All", "All", paste("Site", as.numeric(location) - 1, sep = " ")))
+     clean_data = clean_data%>%mutate(location = ifelse(location == "All", "All", paste(grp(), as.numeric(location) - 1, sep = " ")))
    }
    
    
@@ -209,52 +208,36 @@ print(clean_data)
     paste(plot_colors)
   })
   
-  # get report type - either from input or from the quarterly report files 
+  # create dataframe for header file 
+  header_df = reactive({
+    header_df = data.frame() # initialize df 
+    
+      for(i in 1:length(input$files$name)){
+        if(grepl("header", input$files$name[[i]], ignore.case = TRUE)){ #if this is the header file 
+          header_df = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
+          break 
+        }
+      }
+    
+    header_df
+  })
+  
+  # get report type - either from input or header file 
   report_type = reactive({
-    # used to allow typed in responses - now just extracts directly from quarterly reports every time
-    ##  if checkbox indicates we should extract the title of the report from the quarterly report file 
-    # if(input$extract.title){
-      report_type = "" 
-      
-      # read in report title from header file 
-      for(i in 1:length(input$files$name)){
-        if(grepl("header", input$files$name[[i]], ignore.case = TRUE)){ #if this is the header file 
-          header_df = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
-          report_type = extract_reportTitle(header_df)
-          break 
-        }
-      }
-      
-      paste(report_type)
-    #}
-    # else{ # otherwise, take report type from input 
-    #   paste(input$report.type)
-    # }
+      report_type = extract_from_header(header_df(), "Report type")
   })
   
-  
-  # get notes - either from input or from the quarterly report files 
+  # get notes - either from input or header file 
   patient_notes = reactive({
-    # used to allow typed in responses - now just extracts directly from quarterly reports every time
-    # # if checkbox indicates we should extract the title of the report from the quarterly report file 
-    # if(input$extract.title){
-      patient_notes = "" 
-      
-      # read in notes about patients used for rates 
-      for(i in 1:length(input$files$name)){
-        if(grepl("header", input$files$name[[i]], ignore.case = TRUE)){ #if this is the header file 
-          header_df = read_xlsx(input$files$datapath[[i]], col_names = FALSE)    # read in data of file_i
-          patient_notes = extract_patientNotes(header_df)
-          break 
-        }
-      }
-      
-      paste(patient_notes)
-    # }
-    # else{ # otherwise, take notes from input 
-    #   paste(input$notes)
-    # }
+      report_type = extract_from_header(header_df(), "Notes")
   })
+  
+  
+  # get group (site/provider/etc) - from header file 
+  grp = reactive({
+      grp = extract_from_header(header_df(), "Group")
+  })
+  
   
   ax.rate = reactive(paste(report_type(), "Rate (%)"))
   
