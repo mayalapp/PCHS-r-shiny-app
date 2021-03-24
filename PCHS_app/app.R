@@ -58,7 +58,10 @@ ui = fluidPage(
       
       # option to anonymize locations/providers/etc 
       checkboxInput(inputId = "anonymize", label = "Anonymize plot outputs", value = FALSE), 
-    
+
+      # option to print each site/provider/etc on different page for PDFs
+      checkboxInput(inputId = "page.per.site", label = "PDF report: one location/provider/etc. per page", value = FALSE), 
+      
       # dropdown with different cancer screening options. starts on blank. 
       # affects notes on which patients are used, report title, and graph titles
       selectInput(inputId = "report.type", label = "Choose report type (if not extracting from header file)",
@@ -486,7 +489,8 @@ observeEvent(input$run, {   # create run button to plot graphs
       file.copy("rate_report.Rmd", tempReport, overwrite = TRUE)
 
       # Set up parameters to pass to Rmd document
-      params <- list(report.type = report_type(), rate.data = data(), patient.notes = patient_notes())
+      params <- list(report.type = report_type(), rate.data = data(), 
+                     patient.notes = patient_notes(), page.per.site = input$page.per.site)
 
       # this grabs the rate_report.Rmd markdown file and knits it to a pdf giving it the parameters "params"
       # Knit the document, passing in the `params` list, and eval it in a
@@ -498,6 +502,7 @@ observeEvent(input$run, {   # create run button to plot graphs
       )
     }
   )
+  
   
   #output$debug <- renderText({print(data())})
 }

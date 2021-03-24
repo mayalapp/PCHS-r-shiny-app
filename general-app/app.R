@@ -41,6 +41,9 @@ ui = fluidPage(
       # option to anonymize locations/providers/etc 
       checkboxInput(inputId = "anonymize", label = "Anonymize plot outputs", value = FALSE), 
       
+      # option to print each site/provider/etc on different page for PDFs
+      checkboxInput(inputId = "page.per.site", label = "PDF report: one group of plots per page", value = FALSE), 
+      
       # button to generate plots
       actionButton(inputId = "run", "Create plots"),
       # button to download pdf report
@@ -414,7 +417,8 @@ observeEvent(input$run, {   # create run button to plot graphs
       file.copy("rate_report.Rmd", tempReport, overwrite = TRUE)
 
       # Set up parameters to pass to Rmd document
-      params <- list(report.type = report_type(), rate.data = data(), patient.notes = patient_notes())
+      params <- list(report.type = report_type(), rate.data = data(), 
+                     patient.notes = patient_notes(), page.per.site = input$page.per.site)
 
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document

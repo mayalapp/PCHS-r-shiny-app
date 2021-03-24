@@ -7,6 +7,7 @@ params:
     rate.data: data.frame()
     patient.notes: ""
     label.months: 2
+    page.per.site: TRUE
     
 title: "`r params$report.type` Report `r Sys.Date()`" 
 classoption: landscape
@@ -44,8 +45,8 @@ p1= params$rate.data%>%filter(location == "All")%>%   # data()  will now be para
 
 ```{r setup, include = FALSE}
 # all plot options 
-
 knitr::opts_chunk$set(echo = TRUE, fig.show="hold", out.width="50%", message = FALSE, warning = FALSE)
+
 library(shiny)
 library(tidyverse)
 library(readxl)
@@ -255,6 +256,14 @@ print(p2)
 
       print(p1)
       print(p2)
+      
+      if(params$page.per.site){
+        w = ggplot(data = NULL)+ theme_void()
+        print(w)
+        print(w)
+      }
+
+
     }
 ```
 
