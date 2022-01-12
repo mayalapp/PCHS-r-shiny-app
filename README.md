@@ -12,7 +12,7 @@ To easily convert time-series report data into time-series visuals. This will al
 
 # Usage
 
-Users can go to the [PCHS web app](http://mayalapp.shinyapps.io/PCHS-cancer-screening-report-generator) or the [time-series visualizer web app](https://mayalapp.shinyapps.io/time-series-visualizer/). 
+Users can go to the [PCHS web app](http://mayalapp.shinyapps.io/PCHS-cancer-screening-report-generator) or the [time-series visualizer web app](https://mayalapp.shinyapps.io/pchs_cqm_report_app). 
 
 The code for the R Shiny apps are located in the `PCHS-app` directory and the `generalized-app` directory. 
 
