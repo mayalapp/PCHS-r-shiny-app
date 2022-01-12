@@ -93,7 +93,8 @@ create_rate_plot = function(df, loc, ymin, ymax,  mycolor = "grey"){
     labs(x = ax.date, y = ax.rate)+
     ggtitle(paste(loc, params$report.type, "Rate"))+
     plot_options+
-    scale_x_date(date_labels = "%b %Y")
+    scale_x_date(date_labels = "%b %Y", breaks = df$date)+
+    theme(axis.text.x = element_text(angle = 90))
 }
 
 # creates bar plot for a specific location
@@ -110,7 +111,8 @@ create_patient_barplot = function(df, loc, ymax,  mycolor = "grey"){
     ggtitle(paste(loc, title.patients))+
     plot_options+
     ylim(0, ymax)+
-    scale_x_date(date_labels = "%b %Y")
+    scale_x_date(date_labels = "%b %Y", breaks = df$date)+
+      theme(axis.text.x = element_text(angle = 90))
 }
 
 ```
@@ -134,7 +136,8 @@ date_summary = params$rate.data%>%summarize(min_date = min(date), max_date = max
       labs(x = ax.date, y = ax.patients)+
       ggtitle(paste(title.patients))+
       plot_options+
-      scale_x_date(date_labels = "%b %Y")
+    scale_x_date(date_labels = "%b %Y", breaks = params$rate.data$date)+
+      theme(axis.text.x = element_text(angle = 90))
 ```
 ```{r allSitesLineplot, include = FALSE}
     # create plot
@@ -151,8 +154,9 @@ date_summary = params$rate.data%>%summarize(min_date = min(date), max_date = max
       labs(x = ax.date, y = ax.rate, color = ax.location)+
       ggtitle(paste(params$report.type, "Rates"))+
       plot_options+
-      scale_x_date(date_labels = "%b %Y")+#,
-                   #limits = c(date_summary$min_date,date_summary$max_date + weeks(6)))+ #extend xlim so labels aren't cut off
+      scale_x_date(date_labels = "%b %Y", breaks = params$rate.data$date)+
+      theme(axis.text.x = element_text(angle = 90))+
+                         #limits = c(date_summary$min_date,date_summary$max_date + weeks(6)))+ #extend xlim so labels aren't cut off
                   #limits = c(date_summary$min_date,date_summary$max_date + months(params$label.months)))+ #extend xlim so labels aren't cut off
      geom_dl(aes(label = location), method = list(dl.trans(x = x + 0.7), "last.bumpup", cex = 1.2, fontface = "bold")) +
       #scale_color_brewer(palette = "Set3")

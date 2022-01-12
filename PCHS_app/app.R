@@ -172,7 +172,8 @@ server = function(input, output){
       labs(x = ax.date, y = ax.rate())+
       ggtitle(paste(loc, report_type(), "Rate"))+
       plot_options+
-      scale_x_date(date_labels = "%b %Y")
+      scale_x_date(date_labels = "%b %Y", breaks = loc_data$date)+
+      theme(axis.text.x = element_text(angle = 90))
       
       p
   }
@@ -183,7 +184,8 @@ server = function(input, output){
   #      loc - string of location name
   #      ymax - y axis max value
   create_patient_barplot = function(df, loc, ymax, mycolor = "grey"){
-    df%>%filter(location == loc)%>%
+    loc_data = df%>%filter(location == loc)
+    loc_data%>%
       ggplot(aes(x = date, y = all_patients))+
       geom_bar(stat = "identity", fill = mycolor)+
       theme_bw()+
@@ -191,7 +193,8 @@ server = function(input, output){
       ggtitle(paste(loc, title.patients()))+
       plot_options+
       ylim(0, ymax)+
-      scale_x_date(date_labels = "%b %Y")
+      scale_x_date(date_labels = "%b %Y", breaks = loc_data$date)+
+      theme(axis.text.x = element_text(angle = 90))
   }
 
 
@@ -365,7 +368,8 @@ observeEvent(input$run, {   # create run button to plot graphs
       labs(x = ax.date, y = ax.patients)+
       ggtitle(paste("PCHS", title.patients()))+
       plot_options+
-      scale_x_date(date_labels = "%b %Y")
+      scale_x_date(date_labels = "%b %Y", breaks = data()$date)+
+      theme(axis.text.x = element_text(angle = 90))
 
     # p1[[2]] saves the line plot object 
     
@@ -393,7 +397,8 @@ observeEvent(input$run, {   # create run button to plot graphs
       labs(x = ax.date, y = ax.rate(), color = ax.location)+
       ggtitle(paste("PCHS", report_type(), "Rates"))+
       plot_options+
-      scale_x_date(date_labels = "%b %Y")+#,
+      scale_x_date(date_labels = "%b %Y", breaks = data()$date)+
+      theme(axis.text.x = element_text(angle = 90))+#,
       #limits = c(date_summary$min_date,date_summary$max_date + weeks(6)))+ #extend xlim so labels aren't cut off
       #limits = c(date_summary$min_date,date_summary$max_date + months(params$label.months)))+ #extend xlim so labels aren't cut off
       geom_dl(aes(label = location), method = list(dl.trans(x = x + 1.1), "last.bumpup", cex = 1.2, fontface = "bold")) +
